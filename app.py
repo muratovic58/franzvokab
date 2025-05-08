@@ -21,12 +21,15 @@ def create_app(config_class=Config):
     migrate = Migrate(app, db)
     
     # Import vocabulary from CSV files to database
-    @app.before_first_request
     def import_vocabulary():
-        with app.app_context():
-            # Only import if vocabulary table is empty
+        # Only import if vocabulary table is empty
+        try:
             if Vocabulary.query.count() == 0:
                 vocab_dir = os.path.join(os.path.dirname(__file__), 'Karteikarten')
+                if not os.path.exists(vocab_dir):
+                    print(f"Warning: Vocabulary directory {vocab_dir} not found")
+                    return
+                    
                 for i in range(1, 8):
                     file_path = os.path.join(vocab_dir, f'kapitel{i}.csv')
                     if os.path.exists(file_path):
@@ -41,6 +44,21 @@ def create_app(config_class=Config):
                                     )
                                     db.session.add(vocab)
                 db.session.commit()
+                print(f"Imported vocabulary from CSV files. Total: {Vocabulary.query.count()}")
+        except Exception as e:
+            print(f"Error importing vocabulary: {str(e)}")
+            db.session.rollback()
+    
+    # Register a function to run after the first request
+    @app.before_request
+    def before_request_func():
+        # Check if this is the first request
+        if not hasattr(app, '_got_first_request'):
+            # Set the flag
+            app._got_first_request = True
+            # Run the import
+            with app.app_context():
+                import_vocabulary()
     
     # Add current_user to template context
     @app.context_processor
