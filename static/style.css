@@ -1,0 +1,124 @@
+:root {
+    --french-blue: #002654;
+    --french-white: #ffffff;
+    --french-red: #ED2939;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar {
+    background-color: var(--french-blue);
+    padding: 1rem 0;
+}
+
+.navbar-brand {
+    color: var(--french-white) !important;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.nav-link {
+    color: var(--french-white) !important;
+    margin: 0 1rem;
+}
+
+.hero {
+    background: linear-gradient(135deg, var(--french-blue) 0%, #1a4b8c 50%, var(--french-red) 100%);
+    background-size: cover;
+    background-position: center;
+    color: white;
+    padding: 6rem 0;
+    margin-bottom: 3rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.features {
+    padding: 4rem 0;
+    background-color: #f8f9fa;
+}
+
+.feature-card {
+    text-align: center;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    background-color: white;
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+.flashcard {
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    padding: 2rem;
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 2rem auto;
+    max-width: 600px;
+}
+
+.btn-primary {
+    background-color: var(--french-blue);
+    border-color: var(--french-blue);
+}
+
+.btn-primary:hover {
+    background-color: #001b3f;
+    border-color: #001b3f;
+}
+
+.footer {
+    background-color: var(--french-blue);
+    color: var(--french-white);
+    padding: 2rem 0;
+    margin-top: 3rem;
+}
+
+.footer a {
+    color: var(--french-white);
+    text-decoration: none;
+}
+
+.footer a:hover {
+    color: #ccc;
+}
+
+.chapter-select {
+    max-width: 600px;
+    margin: 2rem auto;
+}
+
+.controls {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.tricolor-border {
+    border-left: 3px solid var(--french-blue);
+    border-right: 3px solid var(--french-red);
+    padding: 1rem;
+    background-color: var(--french-white);
+}
+
+#frenchWord {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+#germanWord {
+    font-size: 1.5rem;
+    color: #666;
+}

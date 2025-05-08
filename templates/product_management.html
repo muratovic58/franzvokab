@@ -1,0 +1,148 @@
+{% extends "layout.html" %}
+
+{% block title %}Product Management Portfolio{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="card-title mb-0">Product Management Portfolio</h1>
+                </div>
+                <div class="card-body">
+                    <p class="lead">This project demonstrates my product management skills through the implementation of a French vocabulary flashcard application with advanced features.</p>
+                    <div class="alert alert-info">
+                        <strong>Note:</strong> The features showcased here highlight my ability to make data-driven decisions, prioritize based on user needs, and plan strategically.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">User Research Dashboard</h5>
+                </div>
+                <div class="card-body">
+                    <p>A comprehensive dashboard for collecting and analyzing user feedback to inform product decisions.</p>
+                    <ul>
+                        <li>NPS tracking</li>
+                        <li>Feature request prioritization</li>
+                        <li>User segmentation analysis</li>
+                        <li>Retention metrics</li>
+                        <li>Feature adoption tracking</li>
+                    </ul>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('user_research.user_research_dashboard') }}" class="btn btn-primary">View Dashboard</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">A/B Testing Framework</h5>
+                </div>
+                <div class="card-body">
+                    <p>An experimentation platform that demonstrates a data-driven approach to product development.</p>
+                    <ul>
+                        <li>Test creation and management</li>
+                        <li>Statistical significance analysis</li>
+                        <li>Conversion tracking</li>
+                        <li>Visual results dashboard</li>
+                        <li>Test history tracking</li>
+                    </ul>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('ab_testing.ab_testing_dashboard') }}" class="btn btn-primary">View Framework</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Product Roadmap</h5>
+                </div>
+                <div class="card-body">
+                    <p>A strategic planning tool that showcases prioritization abilities and long-term product vision.</p>
+                    <ul>
+                        <li>Quarterly roadmap planning</li>
+                        <li>Priority distribution visualization</li>
+                        <li>Impact vs. Effort matrix</li>
+                        <li>ROI calculation for features</li>
+                        <li>Comprehensive item management</li>
+                    </ul>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('product_roadmap.roadmap_dashboard') }}" class="btn btn-primary">View Roadmap</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Product Management Skills Demonstrated</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <h6>Data-Driven Decision Making</h6>
+                                <p>Using metrics and experiments to guide product decisions</p>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 95%" aria-valuenow="95" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <h6>User-Centered Design</h6>
+                                <p>Prioritizing based on user feedback and needs</p>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 90%" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <h6>Strategic Planning</h6>
+                                <p>Creating and visualizing a product roadmap</p>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <h6>Prioritization Frameworks</h6>
+                                <p>Using impact/effort analysis for feature prioritization</p>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 90%" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <h6>Stakeholder Communication</h6>
+                                <p>Creating dashboards that effectively communicate product strategy</p>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <h6>Technical Implementation</h6>
+                                <p>Building functional prototypes to demonstrate product concepts</p>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 80%" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

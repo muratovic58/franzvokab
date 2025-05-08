@@ -1,0 +1,382 @@
+{% extends "layout.html" %}
+
+{% block title %}Feature Flags Admin - VocaFranz{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Feature Flags Admin</h1>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createFeatureFlagModal">
+            <i class="bi bi-plus"></i> New Feature Flag
+        </button>
+    </div>
+    
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="featureFlagsTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th>Rollout %</th>
+                            <th>Last Updated</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="6" class="text-center">Loading feature flags...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <h3>Feature Flag Documentation</h3>
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5>How to Use Feature Flags in Your Code</h5>
+                <p>Feature flags allow you to control the rollout of new features without deploying new code. Here's how to use them:</p>
+                
+                <h6>In Python Code</h6>
+                <pre><code class="language-python">from feature_flags import FeatureFlagManager
+
+# Check if a feature is enabled for the current user
+if FeatureFlagManager.is_feature_enabled('new_learning_algorithm', current_user.id):
+    # Use new algorithm
+    result = new_learning_algorithm()
+else:
+    # Use existing algorithm
+    result = existing_learning_algorithm()</code></pre>
+                
+                <h6>In Templates</h6>
+                <pre><code class="language-html">{# Check if a feature is enabled for the current user #}
+{% if feature_enabled('new_dashboard_ui', current_user.id) %}
+    {# Show new UI #}
+    {% include 'new_dashboard.html' %}
+{% else %}
+    {# Show existing UI #}
+    {% include 'dashboard.html' %}
+{% endif %}</code></pre>
+                
+                <h6>Best Practices</h6>
+                <ul>
+                    <li>Use descriptive names in snake_case (e.g., new_learning_algorithm)</li>
+                    <li>Start with 0% rollout and gradually increase as you gain confidence</li>
+                    <li>Use feature flags for both temporary features (gradual rollout) and permanent toggles (configuration)</li>
+                    <li>Clean up old feature flags when they're no longer needed</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Feature Flag Modal -->
+<div class="modal fade" id="createFeatureFlagModal" tabindex="-1" aria-labelledby="createFeatureFlagModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createFeatureFlagModalLabel">Create Feature Flag</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createFeatureFlagForm">
+                    <div class="mb-3">
+                        <label for="flagName" class="form-label">Flag Name</label>
+                        <input type="text" class="form-control" id="flagName" required>
+                        <div class="form-text">Use snake_case for flag names (e.g., new_learning_algorithm)</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="flagDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="flagDescription" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="flagEnabled">
+                            <label class="form-check-label" for="flagEnabled">Enabled</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rolloutPercentage" class="form-label">Rollout Percentage: <span id="rolloutValue">0</span>%</label>
+                        <input type="range" class="form-range" min="0" max="100" value="0" id="rolloutPercentage">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="createFeatureFlagBtn">Create Feature Flag</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Feature Flag Modal -->
+<div class="modal fade" id="editFeatureFlagModal" tabindex="-1" aria-labelledby="editFeatureFlagModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editFeatureFlagModalLabel">Edit Feature Flag</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editFeatureFlagForm">
+                    <input type="hidden" id="editFlagName">
+                    <div class="mb-3">
+                        <label class="form-label">Flag Name</label>
+                        <input type="text" class="form-control" id="editFlagNameDisplay" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editFlagDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="editFlagDescription" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="editFlagEnabled">
+                            <label class="form-check-label" for="editFlagEnabled">Enabled</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editRolloutPercentage" class="form-label">Rollout Percentage: <span id="editRolloutValue">0</span>%</label>
+                        <input type="range" class="form-range" min="0" max="100" value="0" id="editRolloutPercentage">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger me-auto" id="deleteFeatureFlagBtn">Delete</button>
+                <button type="button" class="btn btn-primary" id="updateFeatureFlagBtn">Update Feature Flag</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load feature flags
+    loadFeatureFlags();
+    
+    // Set up rollout percentage slider
+    document.getElementById('rolloutPercentage').addEventListener('input', function() {
+        document.getElementById('rolloutValue').textContent = this.value;
+    });
+    
+    document.getElementById('editRolloutPercentage').addEventListener('input', function() {
+        document.getElementById('editRolloutValue').textContent = this.value;
+    });
+    
+    // Set up create button
+    document.getElementById('createFeatureFlagBtn').addEventListener('click', function() {
+        createFeatureFlag();
+    });
+    
+    // Set up update button
+    document.getElementById('updateFeatureFlagBtn').addEventListener('click', function() {
+        updateFeatureFlag();
+    });
+    
+    // Set up delete button
+    document.getElementById('deleteFeatureFlagBtn').addEventListener('click', function() {
+        deleteFeatureFlag();
+    });
+});
+
+function loadFeatureFlags() {
+    fetch('/api/feature-flags')
+        .then(response => response.json())
+        .then(data => {
+            displayFeatureFlags(data);
+        })
+        .catch(error => {
+            console.error('Error loading feature flags:', error);
+            document.querySelector('#featureFlagsTable tbody').innerHTML = 
+                '<tr><td colspan="6" class="text-center text-danger">Error loading feature flags</td></tr>';
+        });
+}
+
+function displayFeatureFlags(flags) {
+    const tableBody = document.querySelector('#featureFlagsTable tbody');
+    
+    if (!flags || flags.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No feature flags found</td></tr>';
+        return;
+    }
+    
+    tableBody.innerHTML = '';
+    
+    flags.forEach(flag => {
+        const row = document.createElement('tr');
+        
+        const statusBadge = flag.enabled ? 
+            '<span class="badge bg-success">Enabled</span>' : 
+            '<span class="badge bg-secondary">Disabled</span>';
+        
+        row.innerHTML = `
+            <td>${flag.name}</td>
+            <td>${flag.description || '-'}</td>
+            <td>${statusBadge}</td>
+            <td>${flag.rollout_percentage}%</td>
+            <td>${formatDate(flag.updated_at)}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary edit-flag-btn" data-flag-name="${flag.name}">
+                    Edit
+                </button>
+            </td>
+        `;
+        
+        tableBody.appendChild(row);
+        
+        // Add event listener to edit button
+        row.querySelector('.edit-flag-btn').addEventListener('click', function() {
+            openEditModal(flag);
+        });
+    });
+}
+
+function createFeatureFlag() {
+    const name = document.getElementById('flagName').value.trim();
+    const description = document.getElementById('flagDescription').value.trim();
+    const enabled = document.getElementById('flagEnabled').checked;
+    const rolloutPercentage = parseInt(document.getElementById('rolloutPercentage').value);
+    
+    if (!name) {
+        alert('Flag name is required');
+        return;
+    }
+    
+    if (!/^[a-z0-9_]+$/.test(name)) {
+        alert('Flag name must be in snake_case format (lowercase letters, numbers, and underscores only)');
+        return;
+    }
+    
+    fetch('/api/feature-flags', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            name: name,
+            description: description,
+            enabled: enabled,
+            rollout_percentage: rolloutPercentage
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('createFeatureFlagModal'));
+            modal.hide();
+            
+            // Reset form
+            document.getElementById('createFeatureFlagForm').reset();
+            document.getElementById('rolloutValue').textContent = '0';
+            
+            // Reload feature flags
+            loadFeatureFlags();
+            
+            alert('Feature flag created successfully!');
+        } else {
+            alert('Failed to create feature flag: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error creating feature flag:', error);
+        alert('An error occurred while creating the feature flag');
+    });
+}
+
+function openEditModal(flag) {
+    document.getElementById('editFlagName').value = flag.name;
+    document.getElementById('editFlagNameDisplay').value = flag.name;
+    document.getElementById('editFlagDescription').value = flag.description || '';
+    document.getElementById('editFlagEnabled').checked = flag.enabled;
+    document.getElementById('editRolloutPercentage').value = flag.rollout_percentage;
+    document.getElementById('editRolloutValue').textContent = flag.rollout_percentage;
+    
+    const modal = new bootstrap.Modal(document.getElementById('editFeatureFlagModal'));
+    modal.show();
+}
+
+function updateFeatureFlag() {
+    const name = document.getElementById('editFlagName').value;
+    const description = document.getElementById('editFlagDescription').value.trim();
+    const enabled = document.getElementById('editFlagEnabled').checked;
+    const rolloutPercentage = parseInt(document.getElementById('editRolloutPercentage').value);
+    
+    fetch(`/api/feature-flags/${name}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            description: description,
+            enabled: enabled,
+            rollout_percentage: rolloutPercentage
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editFeatureFlagModal'));
+            modal.hide();
+            
+            // Reload feature flags
+            loadFeatureFlags();
+            
+            alert('Feature flag updated successfully!');
+        } else {
+            alert('Failed to update feature flag: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error updating feature flag:', error);
+        alert('An error occurred while updating the feature flag');
+    });
+}
+
+function deleteFeatureFlag() {
+    const name = document.getElementById('editFlagName').value;
+    
+    if (confirm(`Are you sure you want to delete the feature flag "${name}"? This action cannot be undone.`)) {
+        fetch(`/api/feature-flags/${name}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editFeatureFlagModal'));
+                modal.hide();
+                
+                // Reload feature flags
+                loadFeatureFlags();
+                
+                alert('Feature flag deleted successfully!');
+            } else {
+                alert('Failed to delete feature flag: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting feature flag:', error);
+            alert('An error occurred while deleting the feature flag');
+        });
+    }
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('de-DE', { 
+        day: '2-digit', 
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+</script>
+{% endblock %}

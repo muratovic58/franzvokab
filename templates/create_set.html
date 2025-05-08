@@ -1,0 +1,54 @@
+{% extends "layout.html" %}
+
+{% block title %}Neues Vokabelset erstellen - VocaFranz{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>Neues Vokabelset erstellen</h1>
+            <p class="lead">Erstellen Sie ein neues Vokabelset zum Teilen mit der Community</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('collab.my_sets') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Zurück zu meinen Sets
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Set-Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('collab.create_set') }}">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Titel*</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                            <div class="form-text">Geben Sie einen aussagekräftigen Titel für Ihr Vokabelset ein.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Beschreibung</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                            <div class="form-text">Beschreiben Sie kurz, worum es in diesem Set geht (z.B. "Französische Verben", "Reisevokabular").</div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="is_public" name="is_public">
+                            <label class="form-check-label" for="is_public">Öffentlich machen</label>
+                            <div class="form-text">Wenn aktiviert, können andere Benutzer dieses Set sehen und abonnieren.</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Set erstellen</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

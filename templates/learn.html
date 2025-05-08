@@ -1,0 +1,179 @@
+{% extends "layout.html" %}
+
+{% block title %}Vokabeln Lernen - Französisch Vokabeltrainer{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row mt-4">
+            <div class="col-md-8 offset-md-2">
+                <a href="/" class="btn btn-outline-secondary mb-4">← Zurück zur Startseite</a>
+                
+                <div class="chapter-select">
+                    <h2>Wähle ein Kapitel</h2>
+                    <select id="chapterSelect" class="form-select">
+                        <option value="all">Alle Kapitel</option>
+                        <option value="1">Kapitel 1</option>
+                        <option value="2">Kapitel 2</option>
+                        <option value="3">Kapitel 3</option>
+                        <option value="4">Kapitel 4</option>
+                        <option value="5">Kapitel 5</option>
+                        <option value="6">Kapitel 6</option>
+                        <option value="7">Kapitel 7</option>
+                    </select>
+                </div>
+
+                <div id="flashcardContainer" class="flashcard card">
+                    <div class="card-body text-center">
+                        <h3 id="frenchWord" class="card-title mb-4"></h3>
+                        <div id="germanWord" class="card-text hidden"></div>
+                    </div>
+                </div>
+
+                <div class="controls text-center">
+                    <button id="showAnswer" class="btn btn-primary">Antwort zeigen</button>
+                    <div id="evaluationButtons" class="mt-3 hidden">
+                        <button id="correct" class="btn btn-success">Richtig</button>
+                        <button id="incorrect" class="btn btn-danger">Falsch</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let vocabulary = [];
+        let currentIndex = 0;
+        let isAnswerShown = false;
+
+        document.getElementById('chapterSelect').addEventListener('change', loadVocabulary);
+        document.getElementById('showAnswer').addEventListener('click', showAnswer);
+        document.getElementById('correct').addEventListener('click', () => nextCard(true));
+        document.getElementById('incorrect').addEventListener('click', () => nextCard(false));
+
+        // Disable evaluation buttons initially
+        document.getElementById('correct').disabled = true;
+        document.getElementById('incorrect').disabled = true;
+
+        function loadVocabulary() {
+            const chapter = document.getElementById('chapterSelect').value;
+            fetch(`/api/vocab/${chapter}`)
+                .then(response => response.json())
+                .then(data => {
+                    vocabulary = data;
+                    currentIndex = 0;
+                    showNextCard();
+                });
+        }
+
+        function showNextCard() {
+            if (currentIndex >= vocabulary.length) {
+                currentIndex = 0;
+            }
+            
+            if (vocabulary.length === 0) {
+                document.getElementById('frenchWord').textContent = 'Bitte wähle ein Kapitel';
+                return;
+            }
+
+            const card = vocabulary[currentIndex];
+            document.getElementById('frenchWord').textContent = card[0];
+            document.getElementById('germanWord').textContent = '';
+            document.getElementById('germanWord').classList.add('hidden');
+            document.getElementById('evaluationButtons').classList.add('hidden');
+            document.getElementById('showAnswer').classList.remove('hidden');
+            
+            // Reset buttons state
+            document.getElementById('correct').disabled = true;
+            document.getElementById('incorrect').disabled = true;
+            isAnswerShown = false;
+        }
+
+        function showAnswer() {
+            const card = vocabulary[currentIndex];
+            document.getElementById('germanWord').textContent = card[1];
+            document.getElementById('germanWord').classList.remove('hidden');
+            document.getElementById('evaluationButtons').classList.remove('hidden');
+            document.getElementById('showAnswer').classList.add('hidden');
+            
+            // Enable evaluation buttons only after showing answer
+            document.getElementById('correct').disabled = false;
+            document.getElementById('incorrect').disabled = false;
+            isAnswerShown = true;
+        }
+
+        function nextCard(wasCorrect) {
+            if (!isAnswerShown) return; // Prevent moving to next card if answer isn't shown
+            
+            // Get current card data
+            const card = vocabulary[currentIndex];
+            const frenchWord = card[0];
+            const germanWord = card[1];
+            
+            // Send progress update to server
+            fetch('/update-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    correct: wasCorrect,
+                    card_index: currentIndex,
+                    french: frenchWord,
+                    german: germanWord
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Progress updated:', data);
+            })
+            .catch(error => {
+                console.error('Error updating progress:', error);
+            });
+            
+            currentIndex++;
+            showNextCard();
+        }
+
+        // Function to check if there's a specific word to practice
+        function checkForPracticeWord() {
+            const practiceWordData = sessionStorage.getItem('practiceWord');
+            if (practiceWordData) {
+                try {
+                    const wordData = JSON.parse(practiceWordData);
+                    // Create a temporary vocabulary list with just this word
+                    vocabulary = [[wordData.french, wordData.german]];
+                    currentIndex = 0;
+                    showNextCard();
+                    
+                    // Clear the practice word from session storage
+                    sessionStorage.removeItem('practiceWord');
+                    
+                    // Show a message that we're practicing a specific word
+                    const messageElement = document.createElement('div');
+                    messageElement.className = 'alert alert-info alert-dismissible fade show';
+                    messageElement.innerHTML = `
+                        <strong>Übungsmodus:</strong> Du übst gerade ein schwieriges Wort.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    `;
+                    document.querySelector('.container').prepend(messageElement);
+                    
+                    // Add event listener to return to normal mode
+                    messageElement.querySelector('.btn-close').addEventListener('click', function() {
+                        loadVocabulary();
+                    });
+                    
+                    return true; // Indicate that we're in practice mode
+                } catch (e) {
+                    console.error('Error parsing practice word data:', e);
+                    sessionStorage.removeItem('practiceWord');
+                }
+            }
+            return false; // Not in practice mode
+        }
+        
+        // Load vocabulary when page loads
+        if (!checkForPracticeWord()) {
+            loadVocabulary();
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,690 @@
+{% extends "layout.html" %}
+
+{% block title %}Product Metrics Dashboard - VocaFranz{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Product Metrics Dashboard</h1>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary active" id="period-30d">30 Days</button>
+            <button type="button" class="btn btn-outline-primary" id="period-90d">90 Days</button>
+            <button type="button" class="btn btn-outline-primary" id="period-all">All Time</button>
+        </div>
+    </div>
+    
+    <!-- Key Metrics Summary -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h6 class="card-title text-muted">Monthly Active Users</h6>
+                    <h2 class="mb-0" id="mau-value">-</h2>
+                    <p class="text-muted small" id="mau-change">vs previous period</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h6 class="card-title text-muted">Stickiness (DAU/MAU)</h6>
+                    <h2 class="mb-0"><span id="stickiness-value">-</span>%</h2>
+                    <p class="text-muted small" id="stickiness-change">vs previous period</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h6 class="card-title text-muted">Retention D7</h6>
+                    <h2 class="mb-0"><span id="retention-value">-</span>%</h2>
+                    <p class="text-muted small" id="retention-change">vs previous period</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h6 class="card-title text-muted">Mastery Rate</h6>
+                    <h2 class="mb-0"><span id="mastery-value">-</span>%</h2>
+                    <p class="text-muted small" id="mastery-change">vs previous period</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Active Users Chart -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Active Users</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="activeUsersChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">User Engagement</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h6>Daily Active Users</h6>
+                        <h3 id="dau-display">-</h3>
+                    </div>
+                    <div class="mb-4">
+                        <h6>Weekly Active Users</h6>
+                        <h3 id="wau-display">-</h3>
+                    </div>
+                    <div>
+                        <h6>Monthly Active Users</h6>
+                        <h3 id="mau-display">-</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Retention and Feature Usage -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Cohort Retention</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm" id="retentionTable">
+                            <thead>
+                                <tr>
+                                    <th>Cohort</th>
+                                    <th>Size</th>
+                                    <th>Day 1</th>
+                                    <th>Day 7</th>
+                                    <th>Day 30</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="5" class="text-center">Loading data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Feature Usage</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="featureUsageChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Learning Effectiveness and A/B Tests -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Learning Effectiveness</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <h6>Overall Mastery Rate</h6>
+                                <div class="progress" style="height: 25px;">
+                                    <div id="mastery-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <p class="mt-2"><span id="mastery-display">-</span>% of vocabulary mastered</p>
+                            </div>
+                            <div>
+                                <h6>Average Days to Mastery</h6>
+                                <h3 id="days-to-mastery">-</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <canvas id="learningCurveChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">A/B Tests</h5>
+                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createTestModal">New Test</button>
+                </div>
+                <div class="card-body">
+                    <div id="abTestsContainer">
+                        <p class="text-center">No active A/B tests</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Feature Flags -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Feature Flags</h5>
+                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createFeatureFlagModal">New Feature Flag</button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table" id="featureFlagsTable">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th>Rollout %</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="5" class="text-center">Loading feature flags...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create A/B Test Modal -->
+<div class="modal fade" id="createTestModal" tabindex="-1" aria-labelledby="createTestModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createTestModalLabel">Create A/B Test</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createTestForm">
+                    <div class="mb-3">
+                        <label for="testName" class="form-label">Test Name</label>
+                        <input type="text" class="form-control" id="testName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="testDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="testDescription" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Variants</label>
+                        <div id="variantsContainer">
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control variant-input" placeholder="Variant A" value="Control" required>
+                                <button class="btn btn-outline-secondary" type="button" disabled>
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control variant-input" placeholder="Variant B" value="Treatment" required>
+                                <button class="btn btn-outline-secondary" type="button" disabled>
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="addVariantBtn">
+                            Add Variant
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="createTestBtn">Create Test</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Feature Flag Modal -->
+<div class="modal fade" id="createFeatureFlagModal" tabindex="-1" aria-labelledby="createFeatureFlagModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createFeatureFlagModalLabel">Create Feature Flag</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createFeatureFlagForm">
+                    <div class="mb-3">
+                        <label for="flagName" class="form-label">Flag Name</label>
+                        <input type="text" class="form-control" id="flagName" required>
+                        <div class="form-text">Use snake_case for flag names (e.g., new_learning_algorithm)</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="flagDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="flagDescription" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="flagEnabled">
+                            <label class="form-check-label" for="flagEnabled">Enabled</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rolloutPercentage" class="form-label">Rollout Percentage: <span id="rolloutValue">0</span>%</label>
+                        <input type="range" class="form-range" min="0" max="100" value="0" id="rolloutPercentage">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="createFeatureFlagBtn">Create Feature Flag</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize charts with empty data
+    initCharts();
+    
+    // Load initial data for 30 days period
+    loadDashboardData(30);
+    
+    // Set up period buttons
+    document.getElementById('period-30d').addEventListener('click', function() {
+        setPeriodActive(this);
+        loadDashboardData(30);
+    });
+    
+    document.getElementById('period-90d').addEventListener('click', function() {
+        setPeriodActive(this);
+        loadDashboardData(90);
+    });
+    
+    document.getElementById('period-all').addEventListener('click', function() {
+        setPeriodActive(this);
+        loadDashboardData(365);  // Use 365 as proxy for "all time"
+    });
+    
+    // Set up A/B test creation
+    document.getElementById('addVariantBtn').addEventListener('click', function() {
+        addVariantInput();
+    });
+    
+    document.getElementById('createTestBtn').addEventListener('click', function() {
+        createABTest();
+    });
+    
+    // Set up feature flag creation
+    document.getElementById('rolloutPercentage').addEventListener('input', function() {
+        document.getElementById('rolloutValue').textContent = this.value;
+    });
+    
+    document.getElementById('createFeatureFlagBtn').addEventListener('click', function() {
+        createFeatureFlag();
+    });
+});
+
+// Charts variables
+let activeUsersChart, featureUsageChart, learningCurveChart;
+
+function initCharts() {
+    // Active Users Chart
+    const activeUsersCtx = document.getElementById('activeUsersChart').getContext('2d');
+    activeUsersChart = new Chart(activeUsersCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Daily Active Users',
+                data: [],
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Feature Usage Chart
+    const featureUsageCtx = document.getElementById('featureUsageChart').getContext('2d');
+    featureUsageChart = new Chart(featureUsageCtx, {
+        type: 'doughnut',
+        data: {
+            labels: [],
+            datasets: [{
+                data: [],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.7)',
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(255, 206, 86, 0.7)',
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(153, 102, 255, 0.7)',
+                    'rgba(255, 159, 64, 0.7)',
+                    'rgba(199, 199, 199, 0.7)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right'
+                }
+            }
+        }
+    });
+    
+    // Learning Curve Chart
+    const learningCurveCtx = document.getElementById('learningCurveChart').getContext('2d');
+    learningCurveChart = new Chart(learningCurveCtx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Cards by Correct Count',
+                data: [],
+                backgroundColor: 'rgba(54, 162, 235, 0.7)'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Learning Curve'
+                }
+            }
+        }
+    });
+}
+
+function loadDashboardData(days) {
+    // Show loading state
+    showLoading();
+    
+    // Load active users data
+    fetch(`/api/metrics/active-users?days=${days}`)
+        .then(response => response.json())
+        .then(data => {
+            updateActiveUsersMetrics(data);
+        })
+        .catch(error => console.error('Error loading active users:', error));
+    
+    // Load retention data
+    fetch(`/api/metrics/retention?cohort_days=${days}`)
+        .then(response => response.json())
+        .then(data => {
+            updateRetentionTable(data);
+        })
+        .catch(error => console.error('Error loading retention:', error));
+    
+    // Load learning effectiveness data
+    fetch('/api/metrics/learning-effectiveness')
+        .then(response => response.json())
+        .then(data => {
+            updateLearningEffectiveness(data);
+        })
+        .catch(error => console.error('Error loading learning effectiveness:', error));
+    
+    // Load feature usage data
+    fetch(`/api/metrics/feature-usage?days=${days}`)
+        .then(response => response.json())
+        .then(data => {
+            updateFeatureUsage(data);
+        })
+        .catch(error => console.error('Error loading feature usage:', error));
+    
+    // TODO: Load A/B tests and feature flags
+}
+
+function updateActiveUsersMetrics(data) {
+    // Update summary metrics
+    document.getElementById('dau-display').textContent = data.dau;
+    document.getElementById('wau-display').textContent = data.wau;
+    document.getElementById('mau-display').textContent = data.mau;
+    document.getElementById('mau-value').textContent = data.mau;
+    document.getElementById('stickiness-value').textContent = data.stickiness;
+    
+    // Update chart
+    const dates = Object.keys(data.daily_active).sort();
+    const userCounts = dates.map(date => data.daily_active[date]);
+    
+    activeUsersChart.data.labels = dates.map(formatDate);
+    activeUsersChart.data.datasets[0].data = userCounts;
+    activeUsersChart.update();
+}
+
+function updateRetentionTable(data) {
+    const tableBody = document.querySelector('#retentionTable tbody');
+    tableBody.innerHTML = '';
+    
+    if (!data || data.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No retention data available</td></tr>';
+        return;
+    }
+    
+    // Sort by date descending
+    data.sort((a, b) => new Date(b.cohort_date) - new Date(a.cohort_date));
+    
+    // Update retention summary metric with the most recent cohort's 7-day retention
+    if (data[0] && data[0].retention && data[0].retention['7_day'] !== undefined) {
+        document.getElementById('retention-value').textContent = data[0].retention['7_day'];
+    }
+    
+    // Populate table
+    data.forEach(cohort => {
+        const row = document.createElement('tr');
+        
+        row.innerHTML = `
+            <td>${formatDate(cohort.cohort_date)}</td>
+            <td>${cohort.cohort_size}</td>
+            <td>${cohort.retention['1_day'] !== undefined ? cohort.retention['1_day'] + '%' : '-'}</td>
+            <td>${cohort.retention['7_day'] !== undefined ? cohort.retention['7_day'] + '%' : '-'}</td>
+            <td>${cohort.retention['30_day'] !== undefined ? cohort.retention['30_day'] + '%' : '-'}</td>
+        `;
+        
+        tableBody.appendChild(row);
+    });
+}
+
+function updateLearningEffectiveness(data) {
+    // Update summary metrics
+    document.getElementById('mastery-value').textContent = data.mastery_rate;
+    document.getElementById('mastery-display').textContent = data.mastery_rate;
+    document.getElementById('mastery-progress').style.width = `${data.mastery_rate}%`;
+    document.getElementById('days-to-mastery').textContent = data.avg_days_to_mastery;
+    
+    // Update learning curve chart
+    if (data.learning_curve) {
+        const correctCounts = Object.keys(data.learning_curve).sort((a, b) => parseInt(a) - parseInt(b));
+        const cardCounts = correctCounts.map(count => data.learning_curve[count]);
+        
+        learningCurveChart.data.labels = correctCounts.map(count => `${count} correct`);
+        learningCurveChart.data.datasets[0].data = cardCounts;
+        learningCurveChart.update();
+    }
+}
+
+function updateFeatureUsage(data) {
+    if (!data.percentages || Object.keys(data.percentages).length === 0) {
+        return;
+    }
+    
+    // Sort features by usage percentage
+    const features = Object.keys(data.percentages).sort((a, b) => data.percentages[b] - data.percentages[a]);
+    const percentages = features.map(feature => data.percentages[feature]);
+    
+    // Format feature names for display
+    const formattedFeatures = features.map(feature => {
+        return feature
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, l => l.toUpperCase());
+    });
+    
+    featureUsageChart.data.labels = formattedFeatures;
+    featureUsageChart.data.datasets[0].data = percentages;
+    featureUsageChart.update();
+}
+
+function addVariantInput() {
+    const container = document.getElementById('variantsContainer');
+    const variantCount = container.children.length;
+    
+    if (variantCount >= 5) {
+        alert('Maximum 5 variants allowed');
+        return;
+    }
+    
+    const newVariant = document.createElement('div');
+    newVariant.className = 'input-group mb-2';
+    newVariant.innerHTML = `
+        <input type="text" class="form-control variant-input" placeholder="Variant ${String.fromCharCode(65 + variantCount)}" required>
+        <button class="btn btn-outline-secondary remove-variant" type="button">
+            <i class="bi bi-trash"></i>
+        </button>
+    `;
+    
+    container.appendChild(newVariant);
+    
+    // Add event listener to remove button
+    newVariant.querySelector('.remove-variant').addEventListener('click', function() {
+        container.removeChild(newVariant);
+    });
+}
+
+function createABTest() {
+    const name = document.getElementById('testName').value.trim();
+    const description = document.getElementById('testDescription').value.trim();
+    const variantInputs = document.querySelectorAll('.variant-input');
+    
+    if (!name) {
+        alert('Test name is required');
+        return;
+    }
+    
+    const variants = [];
+    variantInputs.forEach(input => {
+        const value = input.value.trim();
+        if (value) {
+            variants.push(value);
+        }
+    });
+    
+    if (variants.length < 2) {
+        alert('At least 2 variants are required');
+        return;
+    }
+    
+    // Create the test
+    fetch('/api/metrics/ab-test/create', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            name: name,
+            description: description,
+            variants: variants
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('createTestModal'));
+            modal.hide();
+            
+            // Reset form
+            document.getElementById('createTestForm').reset();
+            
+            // Refresh A/B tests
+            // TODO: Implement loadABTests function
+            
+            alert('A/B test created successfully!');
+        } else {
+            alert('Failed to create A/B test: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error creating A/B test:', error);
+        alert('An error occurred while creating the A/B test');
+    });
+}
+
+function createFeatureFlag() {
+    const name = document.getElementById('flagName').value.trim();
+    const description = document.getElementById('flagDescription').value.trim();
+    const enabled = document.getElementById('flagEnabled').checked;
+    const rolloutPercentage = parseInt(document.getElementById('rolloutPercentage').value);
+    
+    if (!name) {
+        alert('Flag name is required');
+        return;
+    }
+    
+    if (!/^[a-z0-9_]+$/.test(name)) {
+        alert('Flag name must be in snake_case format (lowercase letters, numbers, and underscores only)');
+        return;
+    }
+    
+    // TODO: Implement feature flag creation API endpoint and call it here
+    
+    // For now, just show success message
+    const modal = bootstrap.Modal.getInstance(document.getElementById('createFeatureFlagModal'));
+    modal.hide();
+    
+    // Reset form
+    document.getElementById('createFeatureFlagForm').reset();
+    document.getElementById('rolloutValue').textContent = '0';
+    
+    alert('Feature flag created successfully!');
+}
+
+function setPeriodActive(button) {
+    // Remove active class from all period buttons
+    document.querySelectorAll('.btn-group .btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Add active class to clicked button
+    button.classList.add('active');
+}
+
+function showLoading() {
+    // TODO: Implement loading indicators
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,190 @@
+{% extends "layout.html" %}
+
+{% block title %}Einstellungen - VocaFranz{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="list-group mb-4">
+                <a href="#api" class="list-group-item list-group-item-action active" data-bs-toggle="list">API-Zugang</a>
+                <a href="#profile" class="list-group-item list-group-item-action" data-bs-toggle="list">Profil</a>
+                <a href="#notifications" class="list-group-item list-group-item-action" data-bs-toggle="list">Benachrichtigungen</a>
+            </div>
+        </div>
+        
+        <div class="col-lg-9">
+            <div class="tab-content">
+                <!-- API Access -->
+                <div class="tab-pane fade show active" id="api">
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 class="card-title">API-Zugang</h2>
+                            <p class="card-text">Verwalte deine API-Tokens für die Integration mit externen Anwendungen.</p>
+                            
+                            <div class="mb-4">
+                                <h5>Neuen API-Token erstellen</h5>
+                                <form id="createTokenForm" class="row g-3">
+                                    <div class="col-md-8">
+                                        <input type="text" class="form-control" id="tokenName" 
+                                               placeholder="Token-Name (z.B. 'Mobile App')" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button type="submit" class="btn btn-primary w-100">Token erstellen</button>
+                                    </div>
+                                </form>
+                            </div>
+                            
+                            <h5>Deine API-Tokens</h5>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Erstellt am</th>
+                                            <th>Zuletzt verwendet</th>
+                                            <th>Aktionen</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for token in tokens %}
+                                        <tr>
+                                            <td>{{ token.name }}</td>
+                                            <td>{{ token.created_at.strftime('%d.%m.%Y') }}</td>
+                                            <td>
+                                                {% if token.last_used_at %}
+                                                    {{ token.last_used_at.strftime('%d.%m.%Y') }}
+                                                {% else %}
+                                                    Noch nie
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-danger" 
+                                                        onclick="deleteToken('{{ token.id }}')">
+                                                    Löschen
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h5>API-Dokumentation</h5>
+                                <p>Lerne, wie du die VocaFranz-API in deinen eigenen Anwendungen nutzen kannst.</p>
+                                <a href="{{ url_for('api_docs') }}" class="btn btn-outline-primary">
+                                    Zur API-Dokumentation
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Profile Settings -->
+                <div class="tab-pane fade" id="profile">
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 class="card-title">Profil-Einstellungen</h2>
+                            <form class="mt-4">
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Benutzername</label>
+                                    <input type="text" class="form-control" id="username" 
+                                           value="{{ current_user.username }}" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">E-Mail</label>
+                                    <input type="email" class="form-control" id="email" 
+                                           value="{{ current_user.email }}">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Speichern</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notification Settings -->
+                <div class="tab-pane fade" id="notifications">
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 class="card-title">Benachrichtigungen</h2>
+                            <form class="mt-4">
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="emailNotifications">
+                                    <label class="form-check-label" for="emailNotifications">
+                                        E-Mail-Benachrichtigungen
+                                    </label>
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="achievementNotifications">
+                                    <label class="form-check-label" for="achievementNotifications">
+                                        Achievement-Benachrichtigungen
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Speichern</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.getElementById('createTokenForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const name = document.getElementById('tokenName').value;
+    
+    try {
+        const response = await fetch('/api/tokens', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Token': '{{ current_user.api_tokens[0].token if current_user.api_tokens else "" }}'
+            },
+            body: JSON.stringify({
+                user_id: {{ current_user.id }},
+                name: name
+            })
+        });
+        
+        const data = await response.json();
+        if (response.ok) {
+            alert('Neuer Token erstellt: ' + data.token + '\nBitte speichern Sie diesen Token, er wird nur einmal angezeigt!');
+            window.location.reload();
+        } else {
+            alert('Fehler beim Erstellen des Tokens: ' + data.error);
+        }
+    } catch (error) {
+        alert('Fehler beim Erstellen des Tokens');
+    }
+});
+
+async function deleteToken(tokenId) {
+    if (!window.confirm('Möchten Sie diesen Token wirklich löschen?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/tokens/' + tokenId, {
+            method: 'DELETE',
+            headers: {
+                'X-API-Token': '{{ current_user.api_tokens[0].token if current_user.api_tokens else "" }}'
+            }
+        });
+        
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            const data = await response.json();
+            alert('Fehler beim Löschen des Tokens: ' + data.error);
+        }
+    } catch (error) {
+        alert('Fehler beim Löschen des Tokens');
+    }
+}
+</script>
+{% endblock %}
+{% endblock %}

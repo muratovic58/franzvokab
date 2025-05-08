@@ -1,0 +1,160 @@
+{% extends "layout.html" %}
+
+{% block title %}Satisfaction Survey{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">User Satisfaction Survey</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-4">Please take a moment to share your experience with FranzVokab. Your feedback helps us improve!</p>
+                    
+                    <form method="POST" action="{{ url_for('user_research.take_survey', survey_type='satisfaction') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <!-- NPS Question -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">How likely are you to recommend FranzVokab to a friend or colleague?</label>
+                            <p class="text-muted small mb-3">0 = Not at all likely, 10 = Extremely likely</p>
+                            
+                            <div class="nps-scale d-flex justify-content-between mb-2">
+                                {% for i in range(11) %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="nps" id="nps{{ i }}" value="{{ i }}" required>
+                                    <label class="form-check-label" for="nps{{ i }}">{{ i }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div class="d-flex justify-content-between small text-muted">
+                                <span>Not at all likely</span>
+                                <span>Extremely likely</span>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <!-- Satisfaction Questions -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">How satisfied are you with the following aspects of FranzVokab?</label>
+                            
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40%">Feature</th>
+                                        <th>Very Dissatisfied</th>
+                                        <th>Dissatisfied</th>
+                                        <th>Neutral</th>
+                                        <th>Satisfied</th>
+                                        <th>Very Satisfied</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Ease of use</td>
+                                        {% for i in range(1, 6) %}
+                                        <td class="text-center">
+                                            <input class="form-check-input" type="radio" name="ease_of_use" value="{{ i }}" required>
+                                        </td>
+                                        {% endfor %}
+                                    </tr>
+                                    <tr>
+                                        <td>Learning effectiveness</td>
+                                        {% for i in range(1, 6) %}
+                                        <td class="text-center">
+                                            <input class="form-check-input" type="radio" name="learning_effectiveness" value="{{ i }}" required>
+                                        </td>
+                                        {% endfor %}
+                                    </tr>
+                                    <tr>
+                                        <td>Content quality</td>
+                                        {% for i in range(1, 6) %}
+                                        <td class="text-center">
+                                            <input class="form-check-input" type="radio" name="content_quality" value="{{ i }}" required>
+                                        </td>
+                                        {% endfor %}
+                                    </tr>
+                                    <tr>
+                                        <td>Progress tracking</td>
+                                        {% for i in range(1, 6) %}
+                                        <td class="text-center">
+                                            <input class="form-check-input" type="radio" name="progress_tracking" value="{{ i }}" required>
+                                        </td>
+                                        {% endfor %}
+                                    </tr>
+                                    <tr>
+                                        <td>Overall experience</td>
+                                        {% for i in range(1, 6) %}
+                                        <td class="text-center">
+                                            <input class="form-check-input" type="radio" name="overall_experience" value="{{ i }}" required>
+                                        </td>
+                                        {% endfor %}
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Usage Frequency -->
+                        <div class="mb-4">
+                            <label for="usage_frequency" class="form-label fw-bold">How often do you use FranzVokab?</label>
+                            <select class="form-select" id="usage_frequency" name="usage_frequency" required>
+                                <option value="">Please select...</option>
+                                <option value="daily">Daily</option>
+                                <option value="several_times_week">Several times a week</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="rarely">Rarely</option>
+                                <option value="first_time">This is my first time</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Most Valuable Feature -->
+                        <div class="mb-4">
+                            <label for="most_valuable" class="form-label fw-bold">What feature of FranzVokab do you find most valuable?</label>
+                            <select class="form-select" id="most_valuable" name="most_valuable" required>
+                                <option value="">Please select...</option>
+                                <option value="flashcards">Flashcard review system</option>
+                                <option value="spaced_repetition">Spaced repetition algorithm</option>
+                                <option value="progress_tracking">Progress tracking</option>
+                                <option value="analytics">Learning analytics</option>
+                                <option value="achievements">Achievements system</option>
+                                <option value="learning_path">Personalized learning path</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Open-ended Feedback -->
+                        <div class="mb-4">
+                            <label for="improvement_suggestions" class="form-label fw-bold">What could we improve about FranzVokab?</label>
+                            <textarea class="form-control" id="improvement_suggestions" name="improvement_suggestions" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Submit Survey</button>
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .nps-scale {
+        display: grid;
+        grid-template-columns: repeat(11, 1fr);
+        gap: 5px;
+    }
+    
+    .nps-scale .form-check {
+        text-align: center;
+    }
+    
+    .nps-scale .form-check-input {
+        margin: 0 auto 5px;
+    }
+</style>
+{% endblock %}

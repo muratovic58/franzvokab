@@ -1,0 +1,120 @@
+{% extends "layout.html" %}
+
+{% block title %}Community Vokabelsets - VocaFranz{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>Community Vokabelsets</h1>
+            <p class="lead">Entdecken Sie von der Community erstellte Vokabelsets oder teilen Sie Ihre eigenen!</p>
+        </div>
+        <div class="col-md-4 text-end">
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('collab.create_set') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Neues Set erstellen
+            </a>
+            <a href="{{ url_for('collab.my_sets') }}" class="btn btn-outline-secondary ms-2">
+                <i class="fas fa-list"></i> Meine Sets
+            </a>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="btn btn-primary">
+                Anmelden zum Erstellen
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="mb-0">Öffentliche Vokabelsets</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" id="setSearch" class="form-control" placeholder="Sets durchsuchen...">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if public_sets %}
+                    <div class="row row-cols-1 row-cols-md-3 g-4" id="setsContainer">
+                        {% for set in public_sets %}
+                        <div class="col set-card">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ set.title }}</h5>
+                                    <h6 class="card-subtitle mb-2 text-muted">Von {{ set.creator.username }}</h6>
+                                    <p class="card-text">{{ set.description }}</p>
+                                    <p class="text-muted">
+                                        <small>{{ set.cards|length }} Karten</small> • 
+                                        <small>Erstellt: {{ set.created_at.strftime('%d.%m.%Y') }}</small>
+                                    </p>
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <a href="{{ url_for('collab.view_set', set_id=set.id) }}" class="btn btn-sm btn-outline-primary">Ansehen</a>
+                                    
+                                    {% if current_user.is_authenticated %}
+                                        {% if set.id in user_subscriptions %}
+                                        <form method="post" action="{{ url_for('collab.unsubscribe', set_id=set.id) }}" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                                <i class="fas fa-star"></i> Abonniert
+                                            </button>
+                                        </form>
+                                        {% else %}
+                                        <form method="post" action="{{ url_for('collab.subscribe', set_id=set.id) }}" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                                <i class="far fa-star"></i> Abonnieren
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <p class="text-muted">Noch keine öffentlichen Sets vorhanden.</p>
+                        {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('collab.create_set') }}" class="btn btn-primary">
+                            Erstellen Sie das erste Set!
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('setSearch');
+    const setsContainer = document.getElementById('setsContainer');
+    const setCards = document.querySelectorAll('.set-card');
+    
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        setCards.forEach(card => {
+            const title = card.querySelector('.card-title').textContent.toLowerCase();
+            const description = card.querySelector('.card-text').textContent.toLowerCase();
+            const creator = card.querySelector('.card-subtitle').textContent.toLowerCase();
+            
+            if (title.includes(searchTerm) || 
+                description.includes(searchTerm) || 
+                creator.includes(searchTerm)) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

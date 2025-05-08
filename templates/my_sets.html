@@ -1,0 +1,141 @@
+{% extends "layout.html" %}
+
+{% block title %}Meine Vokabelsets - VocaFranz{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>Meine Vokabelsets</h1>
+            <p class="lead">Verwalten Sie Ihre erstellten und abonnierten Vokabelsets</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('collab.create_set') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Neues Set erstellen
+            </a>
+            <a href="{{ url_for('collab.community') }}" class="btn btn-outline-secondary ms-2">
+                <i class="fas fa-globe"></i> Community
+            </a>
+        </div>
+    </div>
+
+    <!-- Created Sets -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Von mir erstellte Sets</h5>
+        </div>
+        <div class="card-body">
+            {% if created_sets %}
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                {% for set in created_sets %}
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <h5 class="card-title">{{ set.title }}</h5>
+                                <span class="badge {% if set.is_public %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {% if set.is_public %}Öffentlich{% else %}Privat{% endif %}
+                                </span>
+                            </div>
+                            <p class="card-text">{{ set.description }}</p>
+                            <p class="text-muted">
+                                <small>{{ set.cards|length }} Karten</small> • 
+                                <small>Erstellt: {{ set.created_at.strftime('%d.%m.%Y') }}</small>
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <div class="btn-group">
+                                <a href="{{ url_for('collab.view_set', set_id=set.id) }}" class="btn btn-sm btn-outline-primary">Ansehen</a>
+                                <a href="{{ url_for('collab.edit_set', set_id=set.id) }}" class="btn btn-sm btn-outline-secondary">Bearbeiten</a>
+                                <a href="{{ url_for('collab.manage_cards', set_id=set.id) }}" class="btn btn-sm btn-outline-secondary">Karten</a>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger float-end" 
+                                    data-bs-toggle="modal" data-bs-target="#deleteModal{{ set.id }}">
+                                Löschen
+                            </button>
+                            
+                            <!-- Delete Modal -->
+                            <div class="modal fade" id="deleteModal{{ set.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Set löschen</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Möchten Sie das Set "{{ set.title }}" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                                            <form method="post" action="{{ url_for('collab.delete_set', set_id=set.id) }}">
+                                                <button type="submit" class="btn btn-danger">Löschen</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <p class="text-muted">Sie haben noch keine Sets erstellt.</p>
+                <a href="{{ url_for('collab.create_set') }}" class="btn btn-primary">
+                    Erstellen Sie Ihr erstes Set!
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Subscribed Sets -->
+    <div class="card">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Abonnierte Sets</h5>
+        </div>
+        <div class="card-body">
+            {% if subscribed_sets %}
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                {% for set in subscribed_sets %}
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ set.title }}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">Von {{ set.creator.username }}</h6>
+                            <p class="card-text">{{ set.description }}</p>
+                            <p class="text-muted">
+                                <small>{{ set.cards|length }} Karten</small> • 
+                                <small>Erstellt: {{ set.created_at.strftime('%d.%m.%Y') }}</small>
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a href="{{ url_for('collab.view_set', set_id=set.id) }}" class="btn btn-sm btn-outline-primary">Ansehen</a>
+                            <form method="post" action="{{ url_for('collab.unsubscribe', set_id=set.id) }}" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-star"></i> Abbestellen
+                                </button>
+                            </form>
+                            <form method="post" action="{{ url_for('collab.import_to_user_cards', set_id=set.id) }}" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-download"></i> Importieren
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <p class="text-muted">Sie haben noch keine Sets abonniert.</p>
+                <a href="{{ url_for('collab.community') }}" class="btn btn-primary">
+                    Community Sets entdecken
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

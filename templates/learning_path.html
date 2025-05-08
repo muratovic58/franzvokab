@@ -1,0 +1,417 @@
+{% extends "layout.html" %}
+
+{% block title %}Personalized Learning Path - VocaFranz{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <h1 class="mb-4">Your Learning Path</h1>
+    
+    <div class="row mb-4" id="current-path-container">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Current Learning Path</h5>
+                </div>
+                <div class="card-body">
+                    <div id="no-path-message" style="display: none;">
+                        <p>You don't have an active learning path yet. Create one to get started!</p>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createPathModal">
+                            Create Learning Path
+                        </button>
+                    </div>
+                    
+                    <div id="current-path-details" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Learning Goal:</h6>
+                                <p id="goal-type-display"></p>
+                                
+                                <h6>Daily Target:</h6>
+                                <p><span id="daily-target-display"></span> words per day</p>
+                                
+                                <h6>Duration:</h6>
+                                <p><span id="duration-display"></span> weeks</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Overall Progress:</h6>
+                                <div class="progress mb-2" style="height: 20px;">
+                                    <div id="overall-progress-bar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <p><span id="mastered-cards-display">0</span> / <span id="total-cards-display">0</span> words mastered</p>
+                                
+                                <h6>Estimated Completion:</h6>
+                                <p id="completion-display"></p>
+                                
+                                <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createPathModal">
+                                    Modify Learning Path
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4" id="today-progress-container" style="display: none;">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Today's Progress</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Today's Focus:</h6>
+                            <p id="today-focus-display"></p>
+                            
+                            <h6>Target:</h6>
+                            <p><span id="today-target-display"></span> words</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Progress:</h6>
+                            <div class="progress mb-2" style="height: 20px;">
+                                <div id="today-progress-bar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <p><span id="today-progress-display">0</span> / <span id="today-target-display2">0</span> words reviewed</p>
+                            
+                            <a href="/learn" class="btn btn-success">Start Learning</a>
+                            <button id="optimize-btn" class="btn btn-outline-primary">Optimize Schedule</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Weekly Schedule</h5>
+                </div>
+                <div class="card-body">
+                    <div id="weeks-container">
+                        <div class="text-center py-4">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading your learning path...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Learning Path Modal -->
+<div class="modal fade" id="createPathModal" tabindex="-1" aria-labelledby="createPathModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createPathModalLabel">Create Your Learning Path</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createPathForm">
+                    <div class="mb-3">
+                        <label class="form-label">What is your learning goal?</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="goalType" id="goalBalanced" value="balanced" checked>
+                            <label class="form-check-label" for="goalBalanced">
+                                <strong>Balanced</strong> - Learn at a steady pace with a mix of new and review words
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="goalType" id="goalSpeed" value="speed">
+                            <label class="form-check-label" for="goalSpeed">
+                                <strong>Speed</strong> - Learn as many words as possible in a short time
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="goalType" id="goalMastery" value="mastery">
+                            <label class="form-check-label" for="goalMastery">
+                                <strong>Mastery</strong> - Focus on thoroughly learning fewer words
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="durationWeeks" class="form-label">How many weeks do you want to plan for?</label>
+                        <select class="form-select" id="durationWeeks" name="durationWeeks">
+                            <option value="2">2 weeks</option>
+                            <option value="4" selected>4 weeks</option>
+                            <option value="8">8 weeks</option>
+                            <option value="12">12 weeks</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="generatePathBtn">Generate Learning Path</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if user has an existing learning path
+    checkExistingPath();
+    
+    // Handle generate path button click
+    document.getElementById('generatePathBtn').addEventListener('click', function() {
+        const form = document.getElementById('createPathForm');
+        const goalType = form.querySelector('input[name="goalType"]:checked').value;
+        const durationWeeks = parseInt(form.querySelector('#durationWeeks').value);
+        
+        generateLearningPath(goalType, durationWeeks);
+    });
+    
+    // Handle optimize button click
+    document.getElementById('optimize-btn').addEventListener('click', function() {
+        optimizeLearningSchedule();
+    });
+});
+
+function checkExistingPath() {
+    fetch('/api/learning-path/current')
+        .then(response => response.json())
+        .then(data => {
+            if (data.exists === false) {
+                document.getElementById('no-path-message').style.display = 'block';
+                document.getElementById('current-path-details').style.display = 'none';
+                document.getElementById('today-progress-container').style.display = 'none';
+                document.getElementById('weeks-container').innerHTML = '<p class="text-center py-4">No learning path available. Please create one to get started.</p>';
+            } else {
+                // Path exists, display it
+                displayLearningPath(data);
+                // Get today's progress
+                getLearningPathProgress();
+            }
+        })
+        .catch(error => {
+            console.error('Error checking learning path:', error);
+            document.getElementById('no-path-message').style.display = 'block';
+            document.getElementById('current-path-details').style.display = 'none';
+        });
+}
+
+function generateLearningPath(goalType, durationWeeks) {
+    // Show loading state
+    document.getElementById('generatePathBtn').disabled = true;
+    document.getElementById('generatePathBtn').innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...';
+    
+    fetch('/api/learning-path/generate', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            goal_type: goalType,
+            duration_weeks: durationWeeks
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Hide modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('createPathModal'));
+        modal.hide();
+        
+        // Reset button state
+        document.getElementById('generatePathBtn').disabled = false;
+        document.getElementById('generatePathBtn').textContent = 'Generate Learning Path';
+        
+        // Display the learning path
+        displayLearningPath(data);
+        
+        // Get today's progress
+        getLearningPathProgress();
+    })
+    .catch(error => {
+        console.error('Error generating learning path:', error);
+        document.getElementById('generatePathBtn').disabled = false;
+        document.getElementById('generatePathBtn').textContent = 'Generate Learning Path';
+        alert('Failed to generate learning path. Please try again.');
+    });
+}
+
+function displayLearningPath(path) {
+    // Show path details
+    document.getElementById('no-path-message').style.display = 'none';
+    document.getElementById('current-path-details').style.display = 'block';
+    
+    // Fill in path details
+    document.getElementById('goal-type-display').textContent = capitalizeFirstLetter(path.goal_type);
+    document.getElementById('daily-target-display').textContent = path.daily_cards_target;
+    document.getElementById('duration-display').textContent = path.duration_weeks;
+    document.getElementById('total-cards-display').textContent = path.total_cards;
+    document.getElementById('mastered-cards-display').textContent = path.mastered_cards;
+    
+    // Set completion estimate
+    const days = path.estimated_completion_days;
+    if (days <= 30) {
+        document.getElementById('completion-display').textContent = `Approximately ${days} days`;
+    } else if (days <= 90) {
+        document.getElementById('completion-display').textContent = `Approximately ${Math.round(days/7)} weeks`;
+    } else {
+        document.getElementById('completion-display').textContent = `Approximately ${Math.round(days/30)} months`;
+    }
+    
+    // Display weeks
+    displayWeeks(path.weeks);
+}
+
+function displayWeeks(weeks) {
+    const weeksContainer = document.getElementById('weeks-container');
+    weeksContainer.innerHTML = '';
+    
+    if (!weeks || weeks.length === 0) {
+        weeksContainer.innerHTML = '<p class="text-center">No weekly schedule available.</p>';
+        return;
+    }
+    
+    // Get today's date for highlighting
+    const today = new Date();
+    const todayString = today.toISOString().split('T')[0];
+    
+    weeks.forEach(week => {
+        const weekElement = document.createElement('div');
+        weekElement.className = 'mb-4';
+        
+        weekElement.innerHTML = `
+            <h6 class="mb-3">Week ${week.week_number} (${formatDate(week.start_date)} - ${formatDate(week.end_date)})</h6>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Date</th>
+                            <th>Target</th>
+                            <th>Focus</th>
+                        </tr>
+                    </thead>
+                    <tbody id="week-${week.week_number}-days">
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        weeksContainer.appendChild(weekElement);
+        
+        const daysContainer = document.getElementById(`week-${week.week_number}-days`);
+        
+        week.days.forEach(day => {
+            const dayRow = document.createElement('tr');
+            
+            // Highlight today
+            if (day.date === todayString) {
+                dayRow.className = 'table-primary';
+            }
+            
+            dayRow.innerHTML = `
+                <td>${day.day_name}</td>
+                <td>${formatDate(day.date)}</td>
+                <td>${day.cards_target} words</td>
+                <td>
+                    <span class="badge ${getFocusBadgeClass(day.focus)}">${capitalizeFirstLetter(day.focus)}</span>
+                </td>
+            `;
+            
+            daysContainer.appendChild(dayRow);
+        });
+    });
+}
+
+function getLearningPathProgress() {
+    fetch('/api/learning-path/progress')
+        .then(response => response.json())
+        .then(data => {
+            if (data.exists) {
+                // Show today's progress
+                document.getElementById('today-progress-container').style.display = 'block';
+                
+                // Update overall progress
+                const overallPercentage = data.overall.progress_percentage;
+                document.getElementById('overall-progress-bar').style.width = `${overallPercentage}%`;
+                document.getElementById('overall-progress-bar').setAttribute('aria-valuenow', overallPercentage);
+                document.getElementById('mastered-cards-display').textContent = data.overall.mastered_cards;
+                document.getElementById('total-cards-display').textContent = data.overall.total_cards;
+                
+                // Update today's progress
+                if (data.current_day) {
+                    document.getElementById('today-focus-display').textContent = 
+                        `${capitalizeFirstLetter(data.current_day.focus)} words`;
+                    document.getElementById('today-target-display').textContent = data.current_day.cards_target;
+                    document.getElementById('today-target-display2').textContent = data.current_day.cards_target;
+                }
+                
+                const todayPercentage = data.today.completion_percentage;
+                document.getElementById('today-progress-bar').style.width = `${todayPercentage}%`;
+                document.getElementById('today-progress-bar').setAttribute('aria-valuenow', todayPercentage);
+                document.getElementById('today-progress-display').textContent = data.today.progress;
+            }
+        })
+        .catch(error => console.error('Error getting learning path progress:', error));
+}
+
+function optimizeLearningSchedule() {
+    const optimizeBtn = document.getElementById('optimize-btn');
+    optimizeBtn.disabled = true;
+    optimizeBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Optimizing...';
+    
+    fetch('/api/learning-path/optimize', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        optimizeBtn.disabled = false;
+        optimizeBtn.textContent = 'Optimize Schedule';
+        
+        if (data.success) {
+            alert(`Success! ${data.message}`);
+            // Refresh the page to show updated schedule
+            window.location.reload();
+        } else {
+            alert('Failed to optimize schedule. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error optimizing schedule:', error);
+        optimizeBtn.disabled = false;
+        optimizeBtn.textContent = 'Optimize Schedule';
+        alert('An error occurred while optimizing your schedule. Please try again.');
+    });
+}
+
+// Helper functions
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+}
+
+function getFocusBadgeClass(focus) {
+    switch(focus) {
+        case 'hard':
+            return 'bg-danger';
+        case 'medium':
+            return 'bg-warning text-dark';
+        case 'easy':
+            return 'bg-success';
+        case 'review':
+            return 'bg-info text-dark';
+        default:
+            return 'bg-secondary';
+    }
+}
+</script>
+{% endblock %}
