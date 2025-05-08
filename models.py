@@ -1,6 +1,9 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
+import sqlalchemy as sa
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import List, Optional
 
 db = SQLAlchemy()
 

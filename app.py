@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 import random
 import csv
 from flask_migrate import Migrate
+import sqlalchemy as sa
+from sqlalchemy.orm import Session
 
 from models import db, User, Vocabulary, UserProgress, LearningHistory, DifficultWord
 from config import Config
