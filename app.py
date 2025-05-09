@@ -131,16 +131,27 @@ def create_app(config_class=Config):
             return redirect(url_for('dashboard'))
         
         if request.method == 'POST':
-            username = request.form.get('username')
-            password = request.form.get('password')
-            
-            user = User.query.filter_by(username=username).first()
-            
-            if user and user.check_password(password):
-                session['user_id'] = user.id
-                return redirect(url_for('dashboard'))
-            else:
-                flash('Ungültiger Benutzername oder Passwort', 'danger')
+            try:
+                username = request.form.get('username')
+                password = request.form.get('password')
+                
+                if not username or not password:
+                    flash('Bitte Benutzername und Passwort eingeben', 'danger')
+                    return redirect(url_for('login'))
+                
+                user = User.query.filter_by(username=username).first()
+                
+                if user and user.check_password(password):
+                    session['user_id'] = user.id
+                    session.permanent = True  # Make the session persistent
+                    return redirect(url_for('dashboard'))
+                else:
+                    flash('Ungültiger Benutzername oder Passwort', 'danger')
+                    return redirect(url_for('login'))
+                    
+            except Exception as e:
+                print(f"Login error: {str(e)}")
+                flash('Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.', 'danger')
                 return redirect(url_for('login'))
         
         return render_template('login.html')
@@ -152,65 +163,77 @@ def create_app(config_class=Config):
     
     @app.route('/dashboard')
     def dashboard():
-        if 'user_id' not in session:
+        try:
+            if 'user_id' not in session:
+                return redirect(url_for('login'))
+            
+            user_id = session['user_id']
+            user = User.query.get(user_id)
+            
+            if not user:
+                session.pop('user_id', None)
+                flash('Benutzer nicht gefunden. Bitte erneut anmelden.', 'danger')
+                return redirect(url_for('login'))
+            
+            # Get user statistics
+            total_vocab = Vocabulary.query.count()
+            user_progress = UserProgress.query.filter_by(user_id=user_id).all()
+            words_reviewed = sum(p.correct_count + p.incorrect_count for p in user_progress)
+            correct_count = sum(p.correct_count for p in user_progress)
+            mastered_words = UserProgress.query.filter_by(user_id=user_id, mastered=True).count()
+            
+            # Calculate success rate
+            success_rate = 0
+            if words_reviewed > 0:
+                success_rate = (correct_count / words_reviewed) * 100
+            
+            # Calculate mastery percentage
+            mastery_percentage = 0
+            if total_vocab > 0:
+                mastery_percentage = (mastered_words / total_vocab) * 100
+            
+            # Get learning history
+            today = datetime.utcnow().date()
+            history = LearningHistory.query.filter_by(user_id=user_id).order_by(LearningHistory.date.desc()).limit(7).all()
+            history.reverse()  # Put in chronological order
+            
+            # Prepare chart data
+            chart_data = {
+                'labels': [h.date.strftime('%Y-%m-%d') for h in history],
+                'words_reviewed': [h.words_reviewed for h in history],
+                'success_rates': [h.success_rate for h in history]
+            }
+            
+            # Get difficult words
+            difficult_words = []
+            for dw in DifficultWord.query.filter_by(user_id=user_id).order_by(DifficultWord.error_rate.desc()).limit(10):
+                vocab = Vocabulary.query.get(dw.vocabulary_id)
+                if vocab:  # Add check to ensure vocab exists
+                    difficult_words.append({
+                        'french_word': vocab.french_word,
+                        'german_word': vocab.german_word,
+                        'error_rate': dw.error_rate
+                    })
+            
+            # Prepare stats data
+            stats_data = {
+                'streak_days': get_streak_days(user_id),
+                'words_reviewed': words_reviewed,
+                'success_rate': success_rate,
+                'total_words': total_vocab,
+                'words_mastered': mastered_words,
+                'mastery_percentage': mastery_percentage
+            }
+            
+            return render_template('dashboard.html', 
+                                stats=stats_data, 
+                                difficult_words=difficult_words, 
+                                chart_data=chart_data)
+                                
+        except Exception as e:
+            print(f"Dashboard error: {str(e)}")
+            flash('Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.', 'danger')
             return redirect(url_for('login'))
-        
-        user_id = session['user_id']
-        user = User.query.get(user_id)
-        
-        # Get user statistics
-        total_vocab = Vocabulary.query.count()
-        user_progress = UserProgress.query.filter_by(user_id=user_id).all()
-        words_reviewed = sum(p.correct_count + p.incorrect_count for p in user_progress)
-        correct_count = sum(p.correct_count for p in user_progress)
-        mastered_words = UserProgress.query.filter_by(user_id=user_id, mastered=True).count()
-        
-        # Calculate success rate
-        success_rate = 0
-        if words_reviewed > 0:
-            success_rate = (correct_count / words_reviewed) * 100
-        
-        # Calculate mastery percentage
-        mastery_percentage = 0
-        if total_vocab > 0:
-            mastery_percentage = (mastered_words / total_vocab) * 100
-        
-        # Get learning history
-        today = datetime.utcnow().date()
-        history = LearningHistory.query.filter_by(user_id=user_id).order_by(LearningHistory.date.desc()).limit(7).all()
-        history.reverse()  # Put in chronological order
-        
-        # Prepare chart data
-        chart_data = {
-            'labels': [h.date.strftime('%Y-%m-%d') for h in history],
-            'words_reviewed': [h.words_reviewed for h in history],
-            'success_rates': [h.success_rate for h in history]
-        }
-        
-        # Get difficult words
-        difficult_words = []
-        for dw in DifficultWord.query.filter_by(user_id=user_id).order_by(DifficultWord.error_rate.desc()).limit(10):
-            vocab = Vocabulary.query.get(dw.vocabulary_id)
-            difficult_words.append({
-                'french_word': vocab.french_word,
-                'german_word': vocab.german_word,
-                'error_rate': dw.error_rate
-            })
-        
-        # Prepare stats data
-        stats_data = {
-            'streak_days': get_streak_days(user_id),
-            'words_reviewed': words_reviewed,
-            'success_rate': success_rate,
-            'total_words': total_vocab,
-            'words_mastered': mastered_words,
-            'mastery_percentage': mastery_percentage
-        }
-        
-        return render_template('dashboard.html', 
-                              stats=stats_data, 
-                              difficult_words=difficult_words, 
-                              chart_data=chart_data)
     
     def get_streak_days(user_id):
         today = datetime.utcnow().date()
