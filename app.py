@@ -85,30 +85,43 @@ def create_app(config_class=Config):
     @app.route('/register', methods=['GET', 'POST'])
     def register():
         if request.method == 'POST':
-            username = request.form['username']
-            password = request.form['password']
-            email = request.form['email']
-            
-            # Simple validation
-            if not username or not password or not email:
-                flash('Bitte alle Felder ausfüllen', 'danger')
+            try:
+                username = request.form['username']
+                password = request.form['password']
+                email = request.form['email']
+                
+                # Simple validation
+                if not username or not password or not email:
+                    flash('Bitte alle Felder ausfüllen', 'danger')
+                    return render_template('register.html')
+                
+                # Check if user exists
+                existing_user = User.query.filter_by(username=username).first()
+                if existing_user:
+                    flash('Benutzername bereits vergeben', 'danger')
+                    return render_template('register.html')
+                
+                # Check if email exists
+                existing_email = User.query.filter_by(email=email).first()
+                if existing_email:
+                    flash('E-Mail-Adresse bereits registriert', 'danger')
+                    return render_template('register.html')
+                
+                # Create new user
+                user = User(username=username, email=email)
+                user.set_password(password)
+                
+                db.session.add(user)
+                db.session.commit()
+                
+                flash('Registrierung erfolgreich! Bitte anmelden.', 'success')
+                return redirect(url_for('login'))
+                
+            except Exception as e:
+                db.session.rollback()
+                print(f"Registration error: {str(e)}")
+                flash('Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.', 'danger')
                 return render_template('register.html')
-            
-            # Check if user exists
-            existing_user = User.query.filter_by(username=username).first()
-            if existing_user:
-                flash('Benutzername bereits vergeben', 'danger')
-                return render_template('register.html')
-            
-            # Create new user
-            user = User(username=username, email=email)
-            user.set_password(password)
-            
-            db.session.add(user)
-            db.session.commit()
-            
-            flash('Registrierung erfolgreich! Bitte anmelden.', 'success')
-            return redirect(url_for('login'))
         
         return render_template('register.html')
     
