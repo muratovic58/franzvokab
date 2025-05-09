@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+
+{% block title %}Bestenliste - Französisch Vokabeltrainer{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">Bestenliste</h2>
+                </div>
+                <div class="card-body">
+                    <p class="lead mb-4">Die Top 5 Lernenden mit den meisten gelernten Vokabeln</p>
+                    
+                    {% if top_users %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Rang</th>
+                                    <th>Benutzername</th>
+                                    <th>Gelernte Vokabeln</th>
+                                    <th>Erfolgsrate</th>
+                                    <th>Streak</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in top_users %}
+                                <tr {% if session.username == user.username %}class="table-primary"{% endif %}>
+                                    <td><strong>{{ loop.index }}</strong></td>
+                                    <td>{{ user.username }}</td>
+                                    <td>{{ user.words_reviewed }}</td>
+                                    <td>{{ "%.1f"|format(user.success_rate) }}%</td>
+                                    <td>{{ user.streak_days }} Tage 🔥</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <p>Noch keine Benutzer in der Bestenliste. Sei der Erste!</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mt-4">
+                        <a href="{{ url_for('learn') }}" class="btn btn-primary">Jetzt lernen und aufsteigen!</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

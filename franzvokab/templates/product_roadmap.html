@@ -1,0 +1,794 @@
+{% extends "layout.html" %}
+
+{% block title %}Product Roadmap{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Product Roadmap</h1>
+    
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Strategic Planning Dashboard</h5>
+                </div>
+                <div class="card-body">
+                    <p>This dashboard visualizes the product roadmap and helps prioritize features based on user impact and development effort.</p>
+                    <div class="alert alert-info">
+                        <strong>PM Insight:</strong> A strategic roadmap demonstrates your ability to plan product development and align it with business goals.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Quarterly Roadmap</h5>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addRoadmapItemModal">
+                        Add Item
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="quarterly-roadmap">
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Priority Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <div id="priority-chart" style="height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Impact vs. Effort Matrix</h5>
+                </div>
+                <div class="card-body">
+                    <div id="impact-effort-chart" style="height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">All Roadmap Items</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="roadmap-items-table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th>Target Date</th>
+                                    <th>Impact</th>
+                                    <th>Effort</th>
+                                    <th>ROI</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="8" class="text-center">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Roadmap Item Modal -->
+<div class="modal fade" id="addRoadmapItemModal" tabindex="-1" aria-labelledby="addRoadmapItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addRoadmapItemModalLabel">Add Roadmap Item</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="roadmapItemForm">
+                    <div class="mb-3">
+                        <label for="itemTitle" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="itemTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="itemDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="itemDescription" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="itemPriority" class="form-label">Priority</label>
+                            <select class="form-select" id="itemPriority">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                                <option value="critical">Critical</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="itemStatus" class="form-label">Status</label>
+                            <select class="form-select" id="itemStatus">
+                                <option value="planned" selected>Planned</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="itemUserImpact" class="form-label">User Impact (1-10)</label>
+                            <input type="number" class="form-control" id="itemUserImpact" min="1" max="10" value="5">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="itemEffort" class="form-label">Effort (1-10)</label>
+                            <input type="number" class="form-control" id="itemEffort" min="1" max="10" value="5">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="itemTargetDate" class="form-label">Target Completion Date</label>
+                        <input type="date" class="form-control" id="itemTargetDate">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveRoadmapItem">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Roadmap Item Modal -->
+<div class="modal fade" id="editRoadmapItemModal" tabindex="-1" aria-labelledby="editRoadmapItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editRoadmapItemModalLabel">Edit Roadmap Item</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editRoadmapItemForm">
+                    <input type="hidden" id="editItemId">
+                    <div class="mb-3">
+                        <label for="editItemTitle" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="editItemTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editItemDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="editItemDescription" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editItemPriority" class="form-label">Priority</label>
+                            <select class="form-select" id="editItemPriority">
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                                <option value="critical">Critical</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editItemStatus" class="form-label">Status</label>
+                            <select class="form-select" id="editItemStatus">
+                                <option value="planned">Planned</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editItemUserImpact" class="form-label">User Impact (1-10)</label>
+                            <input type="number" class="form-control" id="editItemUserImpact" min="1" max="10">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editItemEffort" class="form-label">Effort (1-10)</label>
+                            <input type="number" class="form-control" id="editItemEffort" min="1" max="10">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editItemTargetDate" class="form-label">Target Completion Date</label>
+                        <input type="date" class="form-control" id="editItemTargetDate">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="updateRoadmapItem">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load roadmap data
+        loadRoadmapData();
+        
+        // Add event listeners
+        document.getElementById('saveRoadmapItem').addEventListener('click', createRoadmapItem);
+        document.getElementById('updateRoadmapItem').addEventListener('click', updateRoadmapItem);
+    });
+    
+    function loadRoadmapData() {
+        // Load quarterly roadmap
+        fetch('/api/roadmap/quarters')
+            .then(response => response.json())
+            .then(data => {
+                renderQuarterlyRoadmap(data);
+            })
+            .catch(error => {
+                console.error('Error loading quarterly roadmap:', error);
+                document.getElementById('quarterly-roadmap').innerHTML = '<div class="alert alert-danger">Error loading roadmap data</div>';
+            });
+        
+        // Load all roadmap items
+        fetch('/api/roadmap/items')
+            .then(response => response.json())
+            .then(data => {
+                renderRoadmapItems(data);
+                renderPriorityChart(data);
+                renderImpactEffortChart(data);
+            })
+            .catch(error => {
+                console.error('Error loading roadmap items:', error);
+                document.getElementById('roadmap-items-table').innerHTML = '<div class="alert alert-danger">Error loading roadmap items</div>';
+            });
+    }
+    
+    function renderQuarterlyRoadmap(data) {
+        let html = '<div class="row">';
+        
+        // Create a column for each quarter
+        for (const [key, quarter] of Object.entries(data)) {
+            if (key === 'completed') continue; // Skip completed items for now
+            
+            html += `
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-header bg-light">
+                            <h5 class="card-title mb-0">${quarter.name}</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group">
+            `;
+            
+            if (quarter.items.length === 0) {
+                html += '<li class="list-group-item text-muted">No items planned</li>';
+            } else {
+                quarter.items.forEach(item => {
+                    const priorityBadge = getPriorityBadge(item.priority);
+                    const statusBadge = getStatusBadge(item.status);
+                    
+                    html += `
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <strong>${item.title}</strong>
+                                <div>
+                                    ${priorityBadge}
+                                    ${statusBadge}
+                                </div>
+                            </div>
+                            <div class="small text-muted mb-1">Impact: ${item.user_impact_score}/10 | Effort: ${item.effort_score}/10</div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small>${item.target_completion || 'No date'}</small>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-primary edit-item-btn" data-item-id="${item.id}">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </li>
+                    `;
+                });
+            }
+            
+            html += `
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Add completed items column
+        html += `
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0">${data.completed.name}</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+        `;
+        
+        if (data.completed.items.length === 0) {
+            html += '<li class="list-group-item text-muted">No completed items</li>';
+        } else {
+            data.completed.items.slice(0, 5).forEach(item => {
+                html += `
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>${item.title}</span>
+                            <span class="badge bg-success">Completed</span>
+                        </div>
+                    </li>
+                `;
+            });
+            
+            if (data.completed.items.length > 5) {
+                html += `
+                    <li class="list-group-item text-center">
+                        <a href="#" class="text-muted">+ ${data.completed.items.length - 5} more</a>
+                    </li>
+                `;
+            }
+        }
+        
+        html += `
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        html += '</div>';
+        
+        document.getElementById('quarterly-roadmap').innerHTML = html;
+        
+        // Add event listeners to edit buttons
+        document.querySelectorAll('.edit-item-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const itemId = this.getAttribute('data-item-id');
+                openEditModal(itemId);
+            });
+        });
+    }
+    
+    function renderRoadmapItems(items) {
+        let html = '';
+        
+        if (items.length === 0) {
+            html = '<tr><td colspan="8" class="text-center">No roadmap items</td></tr>';
+        } else {
+            items.forEach(item => {
+                const priorityBadge = getPriorityBadge(item.priority);
+                const statusBadge = getStatusBadge(item.status);
+                
+                html += `
+                    <tr>
+                        <td>${item.title}</td>
+                        <td>${priorityBadge}</td>
+                        <td>${statusBadge}</td>
+                        <td>${item.target_completion || '-'}</td>
+                        <td>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar bg-info" role="progressbar" style="width: ${item.user_impact_score * 10}%" aria-valuenow="${item.user_impact_score}" aria-valuemin="0" aria-valuemax="10"></div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: ${item.effort_score * 10}%" aria-valuenow="${item.effort_score}" aria-valuemin="0" aria-valuemax="10"></div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: ${item.roi_score * 10}%" aria-valuenow="${item.roi_score}" aria-valuemin="0" aria-valuemax="10"></div>
+                            </div>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary edit-item-btn" data-item-id="${item.id}">
+                                Edit
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-item-btn" data-item-id="${item.id}">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        
+        document.getElementById('roadmap-items-table').querySelector('tbody').innerHTML = html;
+        
+        // Add event listeners to buttons
+        document.querySelectorAll('.edit-item-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const itemId = this.getAttribute('data-item-id');
+                openEditModal(itemId);
+            });
+        });
+        
+        document.querySelectorAll('.delete-item-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const itemId = this.getAttribute('data-item-id');
+                deleteRoadmapItem(itemId);
+            });
+        });
+    }
+    
+    function renderPriorityChart(items) {
+        // Count items by priority
+        const priorityCounts = {
+            'critical': 0,
+            'high': 0,
+            'medium': 0,
+            'low': 0
+        };
+        
+        items.forEach(item => {
+            if (item.priority in priorityCounts) {
+                priorityCounts[item.priority]++;
+            }
+        });
+        
+        const priorityOptions = {
+            series: Object.values(priorityCounts),
+            chart: {
+                type: 'donut',
+                height: 300
+            },
+            labels: ['Critical', 'High', 'Medium', 'Low'],
+            colors: ['#d9534f', '#f0ad4e', '#5bc0de', '#5cb85c'],
+            legend: {
+                position: 'bottom'
+            },
+            responsive: [{
+                breakpoint: 480,
+                options: {
+                    chart: {
+                        width: 200
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }]
+        };
+        
+        if (window.priorityChart) {
+            window.priorityChart.updateOptions({
+                series: Object.values(priorityCounts)
+            });
+        } else {
+            window.priorityChart = new ApexCharts(document.querySelector("#priority-chart"), priorityOptions);
+            window.priorityChart.render();
+        }
+    }
+    
+    function renderImpactEffortChart(items) {
+        // Prepare data for scatter plot
+        const seriesData = items.map(item => ({
+            x: item.effort_score,
+            y: item.user_impact_score,
+            name: item.title,
+            priority: item.priority
+        }));
+        
+        // Group by priority
+        const critical = seriesData.filter(item => item.priority === 'critical');
+        const high = seriesData.filter(item => item.priority === 'high');
+        const medium = seriesData.filter(item => item.priority === 'medium');
+        const low = seriesData.filter(item => item.priority === 'low');
+        
+        const impactEffortOptions = {
+            series: [{
+                name: 'Critical',
+                data: critical
+            }, {
+                name: 'High',
+                data: high
+            }, {
+                name: 'Medium',
+                data: medium
+            }, {
+                name: 'Low',
+                data: low
+            }],
+            chart: {
+                type: 'scatter',
+                height: 300,
+                zoom: {
+                    enabled: true,
+                    type: 'xy'
+                }
+            },
+            xaxis: {
+                title: {
+                    text: 'Effort'
+                },
+                min: 0,
+                max: 10
+            },
+            yaxis: {
+                title: {
+                    text: 'Impact'
+                },
+                min: 0,
+                max: 10
+            },
+            colors: ['#d9534f', '#f0ad4e', '#5bc0de', '#5cb85c'],
+            markers: {
+                size: 10
+            },
+            tooltip: {
+                custom: function({series, seriesIndex, dataPointIndex, w}) {
+                    const data = w.config.series[seriesIndex].data[dataPointIndex];
+                    return `
+                        <div class="p-2">
+                            <div class="mb-1">${data.name}</div>
+                            <div>Impact: ${data.y}</div>
+                            <div>Effort: ${data.x}</div>
+                        </div>
+                    `;
+                }
+            },
+            annotations: {
+                yaxis: [{
+                    y: 5,
+                    borderColor: '#999',
+                    borderWidth: 1,
+                    strokeDashArray: 5,
+                }],
+                xaxis: [{
+                    x: 5,
+                    borderColor: '#999',
+                    borderWidth: 1,
+                    strokeDashArray: 5,
+                }]
+            }
+        };
+        
+        if (window.impactEffortChart) {
+            window.impactEffortChart.updateOptions({
+                series: [{
+                    name: 'Critical',
+                    data: critical
+                }, {
+                    name: 'High',
+                    data: high
+                }, {
+                    name: 'Medium',
+                    data: medium
+                }, {
+                    name: 'Low',
+                    data: low
+                }]
+            });
+        } else {
+            window.impactEffortChart = new ApexCharts(document.querySelector("#impact-effort-chart"), impactEffortOptions);
+            window.impactEffortChart.render();
+        }
+    }
+    
+    function createRoadmapItem() {
+        const title = document.getElementById('itemTitle').value.trim();
+        const description = document.getElementById('itemDescription').value.trim();
+        const priority = document.getElementById('itemPriority').value;
+        const status = document.getElementById('itemStatus').value;
+        const userImpact = document.getElementById('itemUserImpact').value;
+        const effort = document.getElementById('itemEffort').value;
+        const targetDate = document.getElementById('itemTargetDate').value;
+        
+        if (!title) {
+            alert('Title is required');
+            return;
+        }
+        
+        fetch('/api/roadmap/items', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                title,
+                description,
+                priority,
+                status,
+                user_impact_score: userImpact,
+                effort_score: effort,
+                target_completion: targetDate
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to create roadmap item');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addRoadmapItemModal'));
+            modal.hide();
+            
+            // Reset form
+            document.getElementById('roadmapItemForm').reset();
+            
+            // Reload roadmap data
+            loadRoadmapData();
+            
+            // Show success message
+            alert('Roadmap item created successfully!');
+        })
+        .catch(error => {
+            console.error('Error creating roadmap item:', error);
+            alert('Error creating roadmap item: ' + error.message);
+        });
+    }
+    
+    function openEditModal(itemId) {
+        fetch(`/api/roadmap/items`)
+            .then(response => response.json())
+            .then(items => {
+                const item = items.find(i => i.id == itemId);
+                
+                if (!item) {
+                    throw new Error('Item not found');
+                }
+                
+                // Populate form fields
+                document.getElementById('editItemId').value = item.id;
+                document.getElementById('editItemTitle').value = item.title;
+                document.getElementById('editItemDescription').value = item.description || '';
+                document.getElementById('editItemPriority').value = item.priority;
+                document.getElementById('editItemStatus').value = item.status;
+                document.getElementById('editItemUserImpact').value = item.user_impact_score;
+                document.getElementById('editItemEffort').value = item.effort_score;
+                document.getElementById('editItemTargetDate').value = item.target_completion || '';
+                
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('editRoadmapItemModal'));
+                modal.show();
+            })
+            .catch(error => {
+                console.error('Error loading item:', error);
+                alert('Error loading item: ' + error.message);
+            });
+    }
+    
+    function updateRoadmapItem() {
+        const itemId = document.getElementById('editItemId').value;
+        const title = document.getElementById('editItemTitle').value.trim();
+        const description = document.getElementById('editItemDescription').value.trim();
+        const priority = document.getElementById('editItemPriority').value;
+        const status = document.getElementById('editItemStatus').value;
+        const userImpact = document.getElementById('editItemUserImpact').value;
+        const effort = document.getElementById('editItemEffort').value;
+        const targetDate = document.getElementById('editItemTargetDate').value;
+        
+        if (!title) {
+            alert('Title is required');
+            return;
+        }
+        
+        fetch(`/api/roadmap/items/${itemId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                title,
+                description,
+                priority,
+                status,
+                user_impact_score: userImpact,
+                effort_score: effort,
+                target_completion: targetDate
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to update roadmap item');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editRoadmapItemModal'));
+            modal.hide();
+            
+            // Reload roadmap data
+            loadRoadmapData();
+            
+            // Show success message
+            alert('Roadmap item updated successfully!');
+        })
+        .catch(error => {
+            console.error('Error updating roadmap item:', error);
+            alert('Error updating roadmap item: ' + error.message);
+        });
+    }
+    
+    function deleteRoadmapItem(itemId) {
+        if (!confirm('Are you sure you want to delete this roadmap item?')) {
+            return;
+        }
+        
+        fetch(`/api/roadmap/items/${itemId}`, {
+            method: 'DELETE'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to delete roadmap item');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Reload roadmap data
+            loadRoadmapData();
+            
+            // Show success message
+            alert('Roadmap item deleted successfully!');
+        })
+        .catch(error => {
+            console.error('Error deleting roadmap item:', error);
+            alert('Error deleting roadmap item: ' + error.message);
+        });
+    }
+    
+    // Helper functions for badges
+    function getPriorityBadge(priority) {
+        switch(priority) {
+            case 'critical':
+                return '<span class="badge bg-danger">Critical</span>';
+            case 'high':
+                return '<span class="badge bg-warning text-dark">High</span>';
+            case 'medium':
+                return '<span class="badge bg-info text-dark">Medium</span>';
+            case 'low':
+                return '<span class="badge bg-success">Low</span>';
+            default:
+                return '<span class="badge bg-secondary">Unknown</span>';
+        }
+    }
+    
+    function getStatusBadge(status) {
+        switch(status) {
+            case 'planned':
+                return '<span class="badge bg-secondary">Planned</span>';
+            case 'in_progress':
+                return '<span class="badge bg-primary">In Progress</span>';
+            case 'completed':
+                return '<span class="badge bg-success">Completed</span>';
+            case 'cancelled':
+                return '<span class="badge bg-danger">Cancelled</span>';
+            default:
+                return '<span class="badge bg-secondary">Unknown</span>';
+        }
+    }
+</script>
+{% endblock %}

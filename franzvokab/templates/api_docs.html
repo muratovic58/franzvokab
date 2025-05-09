@@ -1,0 +1,147 @@
+{% extends "layout.html" %}
+
+{% block title %}API Documentation - VocaFranz{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="sticky-top pt-4">
+                <div class="list-group">
+                    <a href="#introduction" class="list-group-item list-group-item-action">Introduction</a>
+                    <a href="#authentication" class="list-group-item list-group-item-action">Authentication</a>
+                    <a href="#endpoints" class="list-group-item list-group-item-action">Endpoints</a>
+                    <a href="#examples" class="list-group-item list-group-item-action">Examples</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-9">
+            <h1 class="mb-4">VocaFranz API Documentation</h1>
+            
+            <section id="introduction" class="mb-5">
+                <h2>Introduction</h2>
+                <p>The VocaFranz API allows you to integrate our vocabulary learning system into your own applications. 
+                   This RESTful API provides access to user statistics, progress tracking, and achievement data.</p>
+            </section>
+            
+            <section id="authentication" class="mb-5">
+                <h2>Authentication</h2>
+                <p>All API requests require authentication using an API token. Include your token in the request headers:</p>
+                <pre><code>X-API-Token: your_api_token_here</code></pre>
+                
+                <div class="alert alert-info">
+                    <h5>Getting an API Token</h5>
+                    <p>You can generate API tokens in your dashboard under Settings → API Access.</p>
+                </div>
+            </section>
+            
+            <section id="endpoints" class="mb-5">
+                <h2>Endpoints</h2>
+                
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5>GET /api/stats</h5>
+                        <p>Get user learning statistics</p>
+                        
+                        <h6>Parameters:</h6>
+                        <ul>
+                            <li><code>user_id</code> (required) - The ID of the user</li>
+                        </ul>
+                        
+                        <h6>Response:</h6>
+<pre><code>{
+    "streak_days": 5,
+    "words_reviewed": 50,
+    "success_rate": 85.5,
+    "level": 4,
+    "xp_points": 1250
+}</code></pre>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5>GET /api/progress</h5>
+                        <p>Get user vocabulary progress</p>
+                        
+                        <h6>Parameters:</h6>
+                        <ul>
+                            <li><code>user_id</code> (required) - The ID of the user</li>
+                        </ul>
+                        
+                        <h6>Response:</h6>
+<pre><code>{
+    "total_cards": 200,
+    "mastered_cards": 75,
+    "mastery_percentage": 37.5
+}</code></pre>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5>GET /api/achievements</h5>
+                        <p>Get user achievements</p>
+                        
+                        <h6>Parameters:</h6>
+                        <ul>
+                            <li><code>user_id</code> (required) - The ID of the user</li>
+                        </ul>
+                        
+                        <h6>Response:</h6>
+<pre><code>[
+    {
+        "name": "Streak Master",
+        "description": "Maintain a 7-day learning streak",
+        "icon": "streak.svg",
+        "earned_at": "2025-05-05T12:00:00Z"
+    }
+]</code></pre>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="examples" class="mb-5">
+                <h2>Examples</h2>
+                
+                <h5>Python Example</h5>
+<pre><code>import requests
+
+API_TOKEN = 'your_api_token_here'
+BASE_URL = 'http://vocafranz.com/api'
+
+headers = {
+    'X-API-Token': API_TOKEN
+}
+
+# Get user stats
+response = requests.get(
+    f'{BASE_URL}/stats',
+    params={'user_id': 123},
+    headers=headers
+)
+stats = response.json()
+print(f"Current streak: {stats['streak_days']} days")</code></pre>
+
+                <h5>JavaScript Example</h5>
+<pre><code>const API_TOKEN = 'your_api_token_here';
+const BASE_URL = 'http://vocafranz.com/api';
+
+async function getUserProgress(userId) {
+    const response = await fetch(
+        `${BASE_URL}/progress?user_id=${userId}`,
+        {
+            headers: {
+                'X-API-Token': API_TOKEN
+            }
+        }
+    );
+    const data = await response.json();
+    console.log(`Mastery: ${data.mastery_percentage}%`);
+}</code></pre>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

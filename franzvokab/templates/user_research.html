@@ -1,0 +1,615 @@
+{% extends "layout.html" %}
+
+{% block title %}User Research Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">User Research Dashboard</h1>
+    
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Product Manager's Overview</h5>
+                </div>
+                <div class="card-body">
+                    <p>This dashboard provides a comprehensive view of user behavior, feedback, and product metrics to inform data-driven product decisions.</p>
+                    <div class="alert alert-info">
+                        <strong>PM Insight:</strong> Use this dashboard to identify user pain points, prioritize feature requests, and measure the impact of product changes.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">User Feedback Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div id="nps-gauge" class="mb-3" style="height: 200px;"></div>
+                    <div id="feedback-summary">
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('user_research.submit_feedback') }}" class="btn btn-sm btn-outline-primary">Collect Feedback</a>
+                    <a href="{{ url_for('user_research.take_survey', survey_type='satisfaction') }}" class="btn btn-sm btn-outline-secondary">Run NPS Survey</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Feature Requests</h5>
+                </div>
+                <div class="card-body">
+                    <div id="feature-requests">
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('user_research.take_survey', survey_type='feature_request') }}" class="btn btn-sm btn-outline-primary">Request Features</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">User Segments</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div id="user-segments-chart" style="height: 300px;"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <div id="user-segments-stats">
+                                <div class="d-flex justify-content-center h-100 align-items-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Retention Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <div id="retention-chart" style="height: 250px;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Feature Adoption</h5>
+                </div>
+                <div class="card-body">
+                    <div id="feature-adoption-chart" style="height: 250px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Product Roadmap</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Feature</th>
+                                    <th>Status</th>
+                                    <th>Priority</th>
+                                    <th>User Impact</th>
+                                    <th>Target Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="roadmap-items">
+                                <tr>
+                                    <td colspan="5" class="text-center">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addRoadmapItemModal">
+                        Add Roadmap Item
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Roadmap Item Modal -->
+<div class="modal fade" id="addRoadmapItemModal" tabindex="-1" aria-labelledby="addRoadmapItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addRoadmapItemModalLabel">Add Roadmap Item</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="roadmapItemForm">
+                    <div class="mb-3">
+                        <label for="itemTitle" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="itemTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="itemDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="itemDescription" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="itemPriority" class="form-label">Priority</label>
+                            <select class="form-select" id="itemPriority">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                                <option value="critical">Critical</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="itemStatus" class="form-label">Status</label>
+                            <select class="form-select" id="itemStatus">
+                                <option value="planned" selected>Planned</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="itemUserImpact" class="form-label">User Impact (1-10)</label>
+                            <input type="number" class="form-control" id="itemUserImpact" min="1" max="10" value="5">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="itemEffort" class="form-label">Effort (1-10)</label>
+                            <input type="number" class="form-control" id="itemEffort" min="1" max="10" value="5">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="itemTargetDate" class="form-label">Target Completion Date</label>
+                        <input type="date" class="form-control" id="itemTargetDate">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveRoadmapItem">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load feedback summary
+        fetch('/api/user-research/feedback-summary')
+            .then(response => response.json())
+            .then(data => {
+                // Render NPS gauge
+                const npsOptions = {
+                    series: [data.nps || 0],
+                    chart: {
+                        type: 'radialBar',
+                        height: 200,
+                        offsetY: -10
+                    },
+                    plotOptions: {
+                        radialBar: {
+                            startAngle: -135,
+                            endAngle: 135,
+                            hollow: {
+                                margin: 0,
+                                size: '70%',
+                            },
+                            dataLabels: {
+                                name: {
+                                    offsetY: -10,
+                                    color: '#333',
+                                    fontSize: '13px'
+                                },
+                                value: {
+                                    color: '#333',
+                                    fontSize: '30px',
+                                    show: true
+                                }
+                            }
+                        }
+                    },
+                    fill: {
+                        type: 'gradient',
+                        gradient: {
+                            shade: 'dark',
+                            type: 'horizontal',
+                            gradientToColors: ['#4CAF50'],
+                            stops: [0, 100]
+                        }
+                    },
+                    stroke: {
+                        lineCap: 'round'
+                    },
+                    labels: ['NPS Score']
+                };
+                
+                const npsChart = new ApexCharts(document.querySelector("#nps-gauge"), npsOptions);
+                npsChart.render();
+                
+                // Render feature requests
+                let featureRequestsHtml = '<h6 class="mb-3">Top Requested Features</h6>';
+                
+                if (data.top_requested_features && data.top_requested_features.length > 0) {
+                    featureRequestsHtml += '<ul class="list-group">';
+                    data.top_requested_features.forEach(feature => {
+                        featureRequestsHtml += `
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                ${feature[0]}
+                                <span class="badge bg-primary rounded-pill">${feature[1]}</span>
+                            </li>
+                        `;
+                    });
+                    featureRequestsHtml += '</ul>';
+                } else {
+                    featureRequestsHtml += '<p class="text-muted">No feature requests yet.</p>';
+                }
+                
+                document.getElementById('feature-requests').innerHTML = featureRequestsHtml;
+                
+                // Render feedback summary
+                let feedbackSummaryHtml = `
+                    <div class="d-flex justify-content-between mt-3">
+                        <div class="text-center">
+                            <h3>${data.survey_count || 0}</h3>
+                            <p class="text-muted">Surveys</p>
+                        </div>
+                        <div class="text-center">
+                            <h3>${data.recent_feedback ? data.recent_feedback.length : 0}</h3>
+                            <p class="text-muted">Recent Feedback</p>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('feedback-summary').innerHTML = feedbackSummaryHtml;
+            })
+            .catch(error => {
+                console.error('Error fetching feedback summary:', error);
+                document.getElementById('feedback-summary').innerHTML = '<div class="alert alert-danger">Error loading feedback data</div>';
+                document.getElementById('feature-requests').innerHTML = '<div class="alert alert-danger">Error loading feature requests</div>';
+            });
+        
+        // Load user segments
+        fetch('/api/user-research/user-segments')
+            .then(response => response.json())
+            .then(data => {
+                const segmentCounts = {
+                    'power_users': data.power_users ? data.power_users.length : 0,
+                    'casual_users': data.casual_users ? data.casual_users.length : 0,
+                    'struggling_users': data.struggling_users ? data.struggling_users.length : 0,
+                    'inactive_users': data.inactive_users ? data.inactive_users.length : 0
+                };
+                
+                const totalUsers = Object.values(segmentCounts).reduce((a, b) => a + b, 0);
+                
+                // Render user segments chart
+                const segmentsOptions = {
+                    series: Object.values(segmentCounts),
+                    chart: {
+                        type: 'donut',
+                        height: 300
+                    },
+                    labels: ['Power Users', 'Casual Users', 'Struggling Users', 'Inactive Users'],
+                    colors: ['#4CAF50', '#2196F3', '#FFC107', '#F44336'],
+                    legend: {
+                        position: 'bottom'
+                    },
+                    responsive: [{
+                        breakpoint: 480,
+                        options: {
+                            chart: {
+                                width: 200
+                            },
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }]
+                };
+                
+                const segmentsChart = new ApexCharts(document.querySelector("#user-segments-chart"), segmentsOptions);
+                segmentsChart.render();
+                
+                // Render user segments stats
+                let segmentsStatsHtml = '<div class="mt-3">';
+                
+                if (totalUsers > 0) {
+                    Object.entries(segmentCounts).forEach(([segment, count]) => {
+                        const percentage = (count / totalUsers * 100).toFixed(1);
+                        const segmentName = segment.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                        
+                        segmentsStatsHtml += `
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <span>${segmentName}</span>
+                                    <span>${percentage}%</span>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar" style="width: ${percentage}%" aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    segmentsStatsHtml += '<p class="text-muted">No user data available.</p>';
+                }
+                
+                segmentsStatsHtml += '</div>';
+                document.getElementById('user-segments-stats').innerHTML = segmentsStatsHtml;
+            })
+            .catch(error => {
+                console.error('Error fetching user segments:', error);
+                document.getElementById('user-segments-chart').innerHTML = '<div class="alert alert-danger">Error loading user segments</div>';
+                document.getElementById('user-segments-stats').innerHTML = '<div class="alert alert-danger">Error loading user segments</div>';
+            });
+        
+        // Load retention metrics
+        fetch('/api/user-research/retention')
+            .then(response => response.json())
+            .then(data => {
+                const retentionOptions = {
+                    series: [{
+                        name: 'Retention Rate',
+                        data: [
+                            data.day1 || 0,
+                            data.day7 || 0,
+                            data.day30 || 0,
+                            data.day90 || 0
+                        ]
+                    }],
+                    chart: {
+                        type: 'bar',
+                        height: 250
+                    },
+                    plotOptions: {
+                        bar: {
+                            borderRadius: 4,
+                            horizontal: false,
+                        }
+                    },
+                    dataLabels: {
+                        enabled: true,
+                        formatter: function (val) {
+                            return val.toFixed(1) + "%";
+                        },
+                        offsetY: -20,
+                        style: {
+                            fontSize: '12px',
+                            colors: ["#304758"]
+                        }
+                    },
+                    xaxis: {
+                        categories: ['Day 1', 'Day 7', 'Day 30', 'Day 90'],
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'Retention Rate (%)'
+                        },
+                        min: 0,
+                        max: 100
+                    },
+                    fill: {
+                        opacity: 1
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function (val) {
+                                return val.toFixed(1) + "%";
+                            }
+                        }
+                    }
+                };
+                
+                const retentionChart = new ApexCharts(document.querySelector("#retention-chart"), retentionOptions);
+                retentionChart.render();
+            })
+            .catch(error => {
+                console.error('Error fetching retention metrics:', error);
+                document.getElementById('retention-chart').innerHTML = '<div class="alert alert-danger">Error loading retention metrics</div>';
+            });
+        
+        // Load feature usage
+        fetch('/api/user-research/feature-usage')
+            .then(response => response.json())
+            .then(data => {
+                const featureOptions = {
+                    series: [{
+                        name: 'Adoption Rate',
+                        data: [
+                            data.learning_path_adoption || 0,
+                            data.achievement_engagement || 0,
+                            data.weekly_active_percentage || 0
+                        ]
+                    }],
+                    chart: {
+                        type: 'radar',
+                        height: 250,
+                        toolbar: {
+                            show: false
+                        }
+                    },
+                    xaxis: {
+                        categories: ['Learning Path', 'Achievements', 'Weekly Activity']
+                    },
+                    yaxis: {
+                        show: false,
+                        min: 0,
+                        max: 100
+                    },
+                    markers: {
+                        size: 4,
+                        colors: ['#2196F3'],
+                        strokeColors: '#fff',
+                        strokeWidth: 2,
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function(val) {
+                                return val.toFixed(1) + '%';
+                            }
+                        }
+                    }
+                };
+                
+                const featureChart = new ApexCharts(document.querySelector("#feature-adoption-chart"), featureOptions);
+                featureChart.render();
+                
+                // Populate roadmap items (placeholder for now)
+                const roadmapItems = [
+                    {
+                        title: 'Mobile App Version',
+                        status: 'planned',
+                        priority: 'high',
+                        impact: 9,
+                        target_date: '2025-08-15'
+                    },
+                    {
+                        title: 'Social Learning Features',
+                        status: 'in_progress',
+                        priority: 'medium',
+                        impact: 7,
+                        target_date: '2025-06-30'
+                    },
+                    {
+                        title: 'Advanced Analytics Dashboard',
+                        status: 'in_progress',
+                        priority: 'high',
+                        impact: 8,
+                        target_date: '2025-05-31'
+                    },
+                    {
+                        title: 'Pronunciation Practice',
+                        status: 'planned',
+                        priority: 'medium',
+                        impact: 8,
+                        target_date: '2025-07-15'
+                    },
+                    {
+                        title: 'Gamification Elements',
+                        status: 'planned',
+                        priority: 'medium',
+                        impact: 6,
+                        target_date: '2025-09-01'
+                    }
+                ];
+                
+                let roadmapHtml = '';
+                roadmapItems.forEach(item => {
+                    const statusBadge = getStatusBadge(item.status);
+                    const priorityBadge = getPriorityBadge(item.priority);
+                    const targetDate = new Date(item.target_date).toLocaleDateString();
+                    
+                    roadmapHtml += `
+                        <tr>
+                            <td>${item.title}</td>
+                            <td>${statusBadge}</td>
+                            <td>${priorityBadge}</td>
+                            <td>
+                                <div class="progress" style="height: 10px;">
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: ${item.impact * 10}%" aria-valuenow="${item.impact}" aria-valuemin="0" aria-valuemax="10"></div>
+                                </div>
+                            </td>
+                            <td>${targetDate}</td>
+                        </tr>
+                    `;
+                });
+                
+                document.getElementById('roadmap-items').innerHTML = roadmapHtml;
+            })
+            .catch(error => {
+                console.error('Error fetching feature usage:', error);
+                document.getElementById('feature-adoption-chart').innerHTML = '<div class="alert alert-danger">Error loading feature usage data</div>';
+            });
+        
+        // Helper functions for roadmap badges
+        function getStatusBadge(status) {
+            switch(status) {
+                case 'planned':
+                    return '<span class="badge bg-secondary">Planned</span>';
+                case 'in_progress':
+                    return '<span class="badge bg-primary">In Progress</span>';
+                case 'completed':
+                    return '<span class="badge bg-success">Completed</span>';
+                case 'cancelled':
+                    return '<span class="badge bg-danger">Cancelled</span>';
+                default:
+                    return '<span class="badge bg-secondary">Planned</span>';
+            }
+        }
+        
+        function getPriorityBadge(priority) {
+            switch(priority) {
+                case 'low':
+                    return '<span class="badge bg-info">Low</span>';
+                case 'medium':
+                    return '<span class="badge bg-primary">Medium</span>';
+                case 'high':
+                    return '<span class="badge bg-warning text-dark">High</span>';
+                case 'critical':
+                    return '<span class="badge bg-danger">Critical</span>';
+                default:
+                    return '<span class="badge bg-primary">Medium</span>';
+            }
+        }
+        
+        // Handle roadmap item form submission
+        document.getElementById('saveRoadmapItem').addEventListener('click', function() {
+            // This would typically send data to the server
+            // For now, just close the modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addRoadmapItemModal'));
+            modal.hide();
+            
+            // Show success message
+            alert('Roadmap item added successfully!');
+        });
+    });
+</script>
+{% endblock %}

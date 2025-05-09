@@ -1,0 +1,260 @@
+{% extends "layout.html" %}
+
+{% block title %}Karten verwalten - {{ vocab_set.title }} - VocaFranz{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>Karten verwalten</h1>
+            <p class="lead">Fügen Sie Karten zu "{{ vocab_set.title }}" hinzu oder bearbeiten Sie sie</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('collab.view_set', set_id=vocab_set.id) }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Zurück zum Set
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Neue Karte hinzufügen</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('collab.manage_cards', set_id=vocab_set.id) }}" id="addCardForm">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="french_word" class="form-label">Französisch*</label>
+                                    <input type="text" class="form-control" id="french_word" name="french_word" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="german_word" class="form-label">Deutsch*</label>
+                                    <input type="text" class="form-control" id="german_word" name="german_word" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="example_sentence" class="form-label">Beispielsatz (optional)</label>
+                                    <input type="text" class="form-control" id="example_sentence" name="example_sentence">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">Karte hinzufügen</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-light">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="mb-0">Vorhandene Karten ({{ vocab_set.cards|length }})</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" id="cardSearch" class="form-control" placeholder="Karten durchsuchen...">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if vocab_set.cards %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Französisch</th>
+                                        <th>Deutsch</th>
+                                        <th>Beispielsatz</th>
+                                        <th>Aktionen</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cardsTableBody">
+                                    {% for card in vocab_set.cards %}
+                                    <tr class="card-row" data-card-id="{{ card.id }}">
+                                        <td>{{ card.french_word }}</td>
+                                        <td>{{ card.german_word }}</td>
+                                        <td>{{ card.example_sentence or '-' }}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-danger delete-card-btn">
+                                                <i class="fas fa-trash"></i> Löschen
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="alert alert-info">
+                                <h5>Tipps zum Hinzufügen von Karten</h5>
+                                <ul>
+                                    <li>Fügen Sie Beispielsätze hinzu, um den Kontext zu verdeutlichen</li>
+                                    <li>Achten Sie auf korrekte Rechtschreibung</li>
+                                    <li>Verwenden Sie bei Verben die Grundform</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- Bulk Import Section -->
+                        <div class="mt-4">
+                            <h5>Massenimport</h5>
+                            <div class="card">
+                                <div class="card-body">
+                                    <p>Fügen Sie mehrere Karten gleichzeitig hinzu. Verwenden Sie das Format:</p>
+                                    <pre>französisch;deutsch;beispielsatz (optional)</pre>
+                                    <p>Eine Karte pro Zeile.</p>
+                                    
+                                    <div class="mb-3">
+                                        <textarea id="bulkImport" class="form-control" rows="5" placeholder="bonjour;hallo;Bonjour, comment ça va?
+merci;danke;Merci beaucoup pour ton aide."></textarea>
+                                    </div>
+                                    
+                                    <button id="bulkImportBtn" class="btn btn-secondary">Karten importieren</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="text-muted">Dieses Set enthält noch keine Karten.</p>
+                            <p>Fügen Sie oben Ihre erste Karte hinzu!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Search functionality
+    const searchInput = document.getElementById('cardSearch');
+    const tableRows = document.querySelectorAll('.card-row');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            tableRows.forEach(row => {
+                const french = row.cells[0].textContent.toLowerCase();
+                const german = row.cells[1].textContent.toLowerCase();
+                const example = row.cells[2].textContent.toLowerCase();
+                
+                if (french.includes(searchTerm) || 
+                    german.includes(searchTerm) || 
+                    example.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    // Delete card functionality
+    document.querySelectorAll('.delete-card-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const row = this.closest('tr');
+            const cardId = row.dataset.cardId;
+            
+            if (confirm('Möchten Sie diese Karte wirklich löschen?')) {
+                fetch(`/set/{{ vocab_set.id }}/card/${cardId}/delete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        row.remove();
+                    } else {
+                        alert('Fehler beim Löschen der Karte');
+                    }
+                });
+            }
+        });
+    });
+    
+    // Bulk import functionality
+    const bulkImportBtn = document.getElementById('bulkImportBtn');
+    if (bulkImportBtn) {
+        bulkImportBtn.addEventListener('click', function() {
+            const bulkText = document.getElementById('bulkImport').value;
+            const lines = bulkText.split('\n').filter(line => line.trim() !== '');
+            
+            if (lines.length === 0) {
+                alert('Bitte geben Sie Karten zum Importieren ein');
+                return;
+            }
+            
+            let importCount = 0;
+            let errorCount = 0;
+            
+            const processNext = (index) => {
+                if (index >= lines.length) {
+                    alert(`Import abgeschlossen: ${importCount} Karten importiert, ${errorCount} Fehler`);
+                    if (importCount > 0) {
+                        window.location.reload();
+                    }
+                    return;
+                }
+                
+                const line = lines[index];
+                const parts = line.split(';');
+                
+                if (parts.length < 2) {
+                    errorCount++;
+                    processNext(index + 1);
+                    return;
+                }
+                
+                const french = parts[0].trim();
+                const german = parts[1].trim();
+                const example = parts.length > 2 ? parts[2].trim() : '';
+                
+                if (!french || !german) {
+                    errorCount++;
+                    processNext(index + 1);
+                    return;
+                }
+                
+                // Create form data
+                const formData = new FormData();
+                formData.append('french_word', french);
+                formData.append('german_word', german);
+                formData.append('example_sentence', example);
+                
+                // Submit the form
+                fetch(`/set/{{ vocab_set.id }}/cards`, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (response.ok) {
+                        importCount++;
+                    } else {
+                        errorCount++;
+                    }
+                    processNext(index + 1);
+                })
+                .catch(() => {
+                    errorCount++;
+                    processNext(index + 1);
+                });
+            };
+            
+            processNext(0);
+        });
+    }
+});
+</script>
+{% endblock %}

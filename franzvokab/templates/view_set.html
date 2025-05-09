@@ -1,0 +1,265 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ vocab_set.title }} - VocaFranz{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>{{ vocab_set.title }}</h1>
+            <p class="lead">{{ vocab_set.description }}</p>
+            <p class="text-muted">
+                <span class="badge {% if vocab_set.is_public %}bg-success{% else %}bg-secondary{% endif %}">
+                    {% if vocab_set.is_public %}Öffentlich{% else %}Privat{% endif %}
+                </span>
+                <span class="ms-2">Erstellt von: {{ vocab_set.creator.username }}</span> •
+                <span>{{ vocab_set.cards|length }} Karten</span> •
+                <span>Erstellt: {{ vocab_set.created_at.strftime('%d.%m.%Y') }}</span>
+            </p>
+        </div>
+        <div class="col-md-4 text-end">
+            {% if current_user.is_authenticated %}
+                {% if is_owner %}
+                    <a href="{{ url_for('collab.edit_set', set_id=vocab_set.id) }}" class="btn btn-outline-primary">
+                        <i class="fas fa-edit"></i> Bearbeiten
+                    </a>
+                    <a href="{{ url_for('collab.manage_cards', set_id=vocab_set.id) }}" class="btn btn-outline-primary">
+                        <i class="fas fa-cards"></i> Karten verwalten
+                    </a>
+                {% else %}
+                    {% if is_subscribed %}
+                        <form method="post" action="{{ url_for('collab.unsubscribe', set_id=vocab_set.id) }}" class="d-inline">
+                            <button type="submit" class="btn btn-outline-secondary">
+                                <i class="fas fa-star"></i> Abbestellen
+                            </button>
+                        </form>
+                    {% else %}
+                        <form method="post" action="{{ url_for('collab.subscribe', set_id=vocab_set.id) }}" class="d-inline">
+                            <button type="submit" class="btn btn-outline-secondary">
+                                <i class="far fa-star"></i> Abonnieren
+                            </button>
+                        </form>
+                    {% endif %}
+                    <form method="post" action="{{ url_for('collab.import_to_user_cards', set_id=vocab_set.id) }}" class="d-inline">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-download"></i> In meine Karten importieren
+                        </button>
+                    </form>
+                {% endif %}
+            {% endif %}
+            <a href="{{ url_for('collab.community') }}" class="btn btn-outline-secondary ms-2">
+                <i class="fas fa-arrow-left"></i> Zurück
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-light">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="mb-0">Vokabelkarten</h5>
+                </div>
+                <div class="col-md-6">
+                    <input type="text" id="cardSearch" class="form-control" placeholder="Karten durchsuchen...">
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if vocab_set.cards %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Französisch</th>
+                                <th>Deutsch</th>
+                                <th>Beispielsatz</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cardsTableBody">
+                            {% for card in vocab_set.cards %}
+                            <tr class="card-row">
+                                <td>{{ card.french_word }}</td>
+                                <td>{{ card.german_word }}</td>
+                                <td>{{ card.example_sentence or '-' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if current_user.is_authenticated %}
+                <div class="mt-4">
+                    <button id="practiceBtn" class="btn btn-primary">
+                        <i class="fas fa-play"></i> Mit diesem Set üben
+                    </button>
+                </div>
+                
+                <!-- Practice Modal -->
+                <div class="modal fade" id="practiceModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Üben mit "{{ vocab_set.title }}"</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div id="flashcard" class="card mb-4">
+                                    <div class="card-body text-center py-5">
+                                        <h3 id="questionText" class="mb-4"></h3>
+                                        <div id="answerContainer" class="d-none">
+                                            <hr>
+                                            <h3 id="answerText" class="text-success"></h3>
+                                            <p id="exampleText" class="fst-italic"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-center mb-3">
+                                    <button id="showAnswerBtn" class="btn btn-outline-primary">Antwort anzeigen</button>
+                                </div>
+                                
+                                <div id="feedbackBtns" class="d-none text-center">
+                                    <p>Wie gut kanntest du diese Vokabel?</p>
+                                    <div class="btn-group">
+                                        <button class="btn btn-danger feedback-btn" data-quality="0">Nicht gewusst</button>
+                                        <button class="btn btn-success feedback-btn" data-quality="1">Gewusst</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="progress mt-4">
+                                    <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+            {% else %}
+                <div class="text-center py-4">
+                    <p class="text-muted">Dieses Set enthält noch keine Karten.</p>
+                    {% if is_owner %}
+                    <a href="{{ url_for('collab.manage_cards', set_id=vocab_set.id) }}" class="btn btn-primary">
+                        Karten hinzufügen
+                    </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Search functionality
+    const searchInput = document.getElementById('cardSearch');
+    const tableRows = document.querySelectorAll('.card-row');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            tableRows.forEach(row => {
+                const french = row.cells[0].textContent.toLowerCase();
+                const german = row.cells[1].textContent.toLowerCase();
+                const example = row.cells[2].textContent.toLowerCase();
+                
+                if (french.includes(searchTerm) || 
+                    german.includes(searchTerm) || 
+                    example.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    // Practice functionality
+    const practiceBtn = document.getElementById('practiceBtn');
+    if (practiceBtn) {
+        const practiceModal = new bootstrap.Modal(document.getElementById('practiceModal'));
+        const showAnswerBtn = document.getElementById('showAnswerBtn');
+        const feedbackBtns = document.getElementById('feedbackBtns');
+        const answerContainer = document.getElementById('answerContainer');
+        const questionText = document.getElementById('questionText');
+        const answerText = document.getElementById('answerText');
+        const exampleText = document.getElementById('exampleText');
+        const progressBar = document.getElementById('progressBar');
+        
+        // Get all cards from the table
+        const cards = [];
+        tableRows.forEach(row => {
+            cards.push({
+                french: row.cells[0].textContent,
+                german: row.cells[1].textContent,
+                example: row.cells[2].textContent !== '-' ? row.cells[2].textContent : ''
+            });
+        });
+        
+        let currentCardIndex = 0;
+        let shuffledCards = [...cards];
+        
+        // Fisher-Yates shuffle
+        function shuffleCards(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        
+        function showNextCard() {
+            if (currentCardIndex >= shuffledCards.length) {
+                // End of practice
+                questionText.textContent = "Übung abgeschlossen!";
+                showAnswerBtn.style.display = 'none';
+                feedbackBtns.classList.add('d-none');
+                answerContainer.classList.add('d-none');
+                return;
+            }
+            
+            const card = shuffledCards[currentCardIndex];
+            
+            // Randomly decide whether to show French or German
+            const showFrench = Math.random() > 0.5;
+            
+            questionText.textContent = showFrench ? card.french : card.german;
+            answerText.textContent = showFrench ? card.german : card.french;
+            exampleText.textContent = card.example;
+            
+            // Update progress bar
+            const progress = (currentCardIndex / shuffledCards.length) * 100;
+            progressBar.style.width = `${progress}%`;
+            
+            // Reset UI
+            answerContainer.classList.add('d-none');
+            showAnswerBtn.style.display = '';
+            feedbackBtns.classList.add('d-none');
+        }
+        
+        practiceBtn.addEventListener('click', function() {
+            // Reset and shuffle cards
+            currentCardIndex = 0;
+            shuffledCards = shuffleCards([...cards]);
+            
+            showNextCard();
+            practiceModal.show();
+        });
+        
+        showAnswerBtn.addEventListener('click', function() {
+            answerContainer.classList.remove('d-none');
+            showAnswerBtn.style.display = 'none';
+            feedbackBtns.classList.remove('d-none');
+        });
+        
+        document.querySelectorAll('.feedback-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                currentCardIndex++;
+                showNextCard();
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

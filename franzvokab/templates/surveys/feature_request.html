@@ -1,0 +1,185 @@
+{% extends "layout.html" %}
+
+{% block title %}Feature Request Survey{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Feature Request Survey</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-4">Help us improve FranzVokab by letting us know what features you'd like to see added or improved!</p>
+                    
+                    <form method="POST" action="{{ url_for('user_research.take_survey', survey_type='feature_request') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <!-- Feature Requests -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Which features would you like to see added or improved?</label>
+                            <p class="text-muted small mb-3">Select all that apply</p>
+                            
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="requested_features" id="feature1" value="mobile_app">
+                                <label class="form-check-label" for="feature1">
+                                    Mobile application
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="requested_features" id="feature2" value="pronunciation">
+                                <label class="form-check-label" for="feature2">
+                                    Pronunciation practice
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="requested_features" id="feature3" value="social_learning">
+                                <label class="form-check-label" for="feature3">
+                                    Social learning (compete with friends)
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="requested_features" id="feature4" value="grammar_lessons">
+                                <label class="form-check-label" for="feature4">
+                                    Grammar lessons
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="requested_features" id="feature5" value="listening_exercises">
+                                <label class="form-check-label" for="feature5">
+                                    Listening exercises
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="requested_features" id="feature6" value="custom_vocabulary">
+                                <label class="form-check-label" for="feature6">
+                                    Custom vocabulary lists
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="requested_features" id="feature7" value="gamification">
+                                <label class="form-check-label" for="feature7">
+                                    More gamification elements
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="requested_features" id="feature8" value="offline_mode">
+                                <label class="form-check-label" for="feature8">
+                                    Offline mode
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="requested_features" id="feature9" value="dark_mode">
+                                <label class="form-check-label" for="feature9">
+                                    Dark mode
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" name="requested_features" id="feature10" value="export_import">
+                                <label class="form-check-label" for="feature10">
+                                    Export/import vocabulary
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Priority Ranking -->
+                        <div class="mb-4">
+                            <label for="top_priority" class="form-label fw-bold">Which feature is your top priority?</label>
+                            <select class="form-select" id="top_priority" name="top_priority" required>
+                                <option value="">Please select...</option>
+                                <option value="mobile_app">Mobile application</option>
+                                <option value="pronunciation">Pronunciation practice</option>
+                                <option value="social_learning">Social learning (compete with friends)</option>
+                                <option value="grammar_lessons">Grammar lessons</option>
+                                <option value="listening_exercises">Listening exercises</option>
+                                <option value="custom_vocabulary">Custom vocabulary lists</option>
+                                <option value="gamification">More gamification elements</option>
+                                <option value="offline_mode">Offline mode</option>
+                                <option value="dark_mode">Dark mode</option>
+                                <option value="export_import">Export/import vocabulary</option>
+                                <option value="other">Other (please specify)</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Custom Feature Request -->
+                        <div class="mb-4">
+                            <label for="custom_feature" class="form-label fw-bold">Do you have any other feature ideas?</label>
+                            <textarea class="form-control" id="custom_feature" name="custom_feature" rows="3" placeholder="Please describe any other features you'd like to see..."></textarea>
+                        </div>
+                        
+                        <!-- Feature Impact -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">How would these features impact your learning experience?</label>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="feature_impact" id="impact1" value="essential" required>
+                                <label class="form-check-label" for="impact1">
+                                    Essential - I would use FranzVokab much more frequently
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="feature_impact" id="impact2" value="significant">
+                                <label class="form-check-label" for="impact2">
+                                    Significant improvement to my experience
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="feature_impact" id="impact3" value="moderate">
+                                <label class="form-check-label" for="impact3">
+                                    Moderate improvement to my experience
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="feature_impact" id="impact4" value="slight">
+                                <label class="form-check-label" for="impact4">
+                                    Slight improvement to my experience
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="feature_impact" id="impact5" value="minimal">
+                                <label class="form-check-label" for="impact5">
+                                    Minimal impact on my experience
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Willingness to Pay -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Would you be willing to pay for premium features?</label>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="willing_to_pay" id="pay1" value="yes_subscription" required>
+                                <label class="form-check-label" for="pay1">
+                                    Yes, I would pay a monthly subscription
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="willing_to_pay" id="pay2" value="yes_onetime">
+                                <label class="form-check-label" for="pay2">
+                                    Yes, I would pay a one-time fee
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="willing_to_pay" id="pay3" value="maybe">
+                                <label class="form-check-label" for="pay3">
+                                    Maybe, depending on the features
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="willing_to_pay" id="pay4" value="no">
+                                <label class="form-check-label" for="pay4">
+                                    No, I prefer free features only
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Submit Feature Requests</button>
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
