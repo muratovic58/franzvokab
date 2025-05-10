@@ -136,28 +136,30 @@
     });
 
     // Function to update dashboard statistics
-    function updateDashboardStats(data) {
-        // Update stats
-        document.getElementById('words-reviewed').textContent = data.words_reviewed + ' Wörter';
-        document.getElementById('success-rate').textContent = data.success_rate.toFixed(1) + '%';
-        document.getElementById('words-mastered').textContent = data.words_mastered;
-        document.getElementById('total-words').textContent = data.total_words;
-        document.getElementById('streak-days').textContent = data.streak_days + ' Tage 🔥';
-        
-        // Update progress bar
-        const progressBar = document.getElementById('progress-bar');
-        progressBar.style.width = data.mastery_percentage + '%';
-        progressBar.setAttribute('aria-valuenow', data.mastery_percentage);
-        progressBar.textContent = data.mastery_percentage + '%';
-        
-        // Update chart data
-        learningChart.data.labels = data.chart_data.labels;
-        learningChart.data.datasets[0].data = data.chart_data.words_reviewed;
-        learningChart.data.datasets[1].data = data.chart_data.success_rates;
-        learningChart.update();
-        
-        // Update difficult words
-        updateDifficultWords(data.difficult_words);
+    function updateDashboardStats() {
+        fetch('/api/user-stats')
+            .then(response => response.json())
+            .then(data => {
+                // Update stats
+                document.getElementById('words-reviewed').textContent = data.words_reviewed + ' Wörter';
+                document.getElementById('success-rate').textContent = data.success_rate.toFixed(1) + '%';
+                document.getElementById('words-mastered').textContent = data.words_mastered;
+                
+                // Update progress bar
+                const progressBar = document.getElementById('progress-bar');
+                progressBar.style.width = data.mastery_percentage + '%';
+                progressBar.setAttribute('aria-valuenow', data.mastery_percentage);
+                progressBar.textContent = data.mastery_percentage + '%';
+                
+                // Update chart data
+                learningChart.data.datasets[0].data = data.chart_data.words_reviewed;
+                learningChart.data.datasets[1].data = data.chart_data.success_rates;
+                learningChart.update();
+                
+                // Update difficult words
+                updateDifficultWords(data.difficult_words);
+            })
+            .catch(error => console.error('Error updating stats:', error));
     }
     
     // Function to update difficult words table
@@ -196,8 +198,8 @@
             german: germanWord
         }));
         
-        // Open learn page in new window
-        window.open('{{ url_for("learn") }}', '_blank');
+        // Redirect to learn page
+        window.location.href = '{{ url_for("learn") }}';
     }
     
     // Add event listeners to practice buttons
@@ -209,32 +211,8 @@
         });
     });
     
-    // Listen for messages from learn page
-    window.addEventListener('message', function(event) {
-        if (event.origin === window.location.origin && event.data.type === 'updateStats') {
-            updateDashboardStats(event.data.stats);
-        }
-    });
-    
-    // Check for updates in local storage
-    window.addEventListener('storage', function(event) {
-        if (event.key === 'lastStats') {
-            try {
-                const stats = JSON.parse(event.newValue);
-                updateDashboardStats(stats);
-            } catch (e) {
-                console.error('Error parsing stats from storage:', e);
-            }
-        }
-    });
-    
     // Update dashboard stats every 30 seconds
-    setInterval(function() {
-        fetch('/api/user-stats')
-            .then(response => response.json())
-            .then(data => updateDashboardStats(data))
-            .catch(error => console.error('Error updating stats:', error));
-    }, 30000);
+    setInterval(updateDashboardStats, 30000);
 </script>
 {% endblock %}
 {% endblock %}

@@ -314,12 +314,10 @@ def create_app(config_class=Config):
     @app.route('/update-progress', methods=['POST'])
     def update_progress():
         if 'user_id' not in session:
-            print("Error: User not logged in")
             return jsonify({'error': 'Not logged in'}), 401
         
         user_id = session['user_id']
         data = request.json
-        print(f"Received progress update request: {data}")
         
         vocab_id = data.get('vocab_id')
         if not vocab_id and data.get('french'):
@@ -327,16 +325,11 @@ def create_app(config_class=Config):
             vocab = Vocabulary.query.filter_by(french_word=data.get('french')).first()
             if vocab:
                 vocab_id = vocab.id
-                print(f"Found vocabulary ID: {vocab_id} for word: {data.get('french')}")
-            else:
-                print(f"Warning: Could not find vocabulary for word: {data.get('french')}")
         
         if not vocab_id:
-            print("Error: Invalid vocabulary - no ID found")
             return jsonify({'error': 'Invalid vocabulary'}), 400
         
         correct = data.get('correct', False)
-        print(f"Processing update - User: {user_id}, Vocab: {vocab_id}, Correct: {correct}")
         
         try:
             # Start a transaction
@@ -346,32 +339,26 @@ def create_app(config_class=Config):
             progress = UserProgress.query.filter_by(user_id=user_id, vocabulary_id=vocab_id).first()
             
             if not progress:
-                print(f"Creating new progress entry for user {user_id} and vocab {vocab_id}")
                 progress = UserProgress(user_id=user_id, vocabulary_id=vocab_id)
                 db.session.add(progress)
             
             # Update counts
             if correct:
                 progress.correct_count += 1
-                print(f"Increased correct count to {progress.correct_count}")
                 # Check if word should be marked as mastered
                 if progress.correct_count > 3 and progress.correct_count / (progress.correct_count + progress.incorrect_count) > 0.7:
                     progress.mastered = True
-                    print(f"Word marked as mastered")
             else:
                 progress.incorrect_count += 1
-                print(f"Increased incorrect count to {progress.incorrect_count}")
                 # Update difficult words
                 difficult_word = DifficultWord.query.filter_by(user_id=user_id, vocabulary_id=vocab_id).first()
                 
                 if not difficult_word:
-                    print(f"Creating new difficult word entry")
                     difficult_word = DifficultWord(user_id=user_id, vocabulary_id=vocab_id)
                     db.session.add(difficult_word)
                 
                 difficult_word.error_count += 1
                 difficult_word.total_count += 1
-                print(f"Updated difficult word stats - errors: {difficult_word.error_count}, total: {difficult_word.total_count}")
             
             progress.last_reviewed = datetime.utcnow()
             
@@ -380,121 +367,77 @@ def create_app(config_class=Config):
             history = LearningHistory.query.filter_by(user_id=user_id, date=today).first()
             
             if not history:
-                print(f"Creating new learning history for today")
                 history = LearningHistory(user_id=user_id, date=today)
                 db.session.add(history)
             
             history.words_reviewed += 1
             if correct:
                 history.correct_count += 1
-            print(f"Updated learning history - words reviewed: {history.words_reviewed}, correct: {history.correct_count}")
             
             # Commit the transaction
             db.session.commit()
-            print("Successfully committed all updates")
-            
-            # Get updated stats
-            stats = get_user_stats(user_id)
-            print(f"Retrieved updated stats: {stats}")
-            
-            return jsonify({
-                'success': True,
-                'stats': stats
-            })
+            return jsonify({'success': True})
             
         except Exception as e:
             # Rollback in case of error
             db.session.rollback()
-            print(f"Error updating progress: {str(e)}")
             return jsonify({'error': str(e)}), 500
-
-    def get_user_stats(user_id):
-        """Helper function to get user statistics"""
-        try:
-            print(f"\nCalculating stats for user {user_id}")
-            
-            # Get user statistics
-            total_vocab = Vocabulary.query.count()
-            print(f"Total vocabulary count: {total_vocab}")
-            
-            user_progress = UserProgress.query.filter_by(user_id=user_id).all()
-            print(f"Found {len(user_progress)} progress entries")
-            
-            words_reviewed = sum(p.correct_count + p.incorrect_count for p in user_progress)
-            correct_count = sum(p.correct_count for p in user_progress)
-            mastered_words = UserProgress.query.filter_by(user_id=user_id, mastered=True).count()
-            
-            print(f"Words reviewed: {words_reviewed}")
-            print(f"Correct count: {correct_count}")
-            print(f"Mastered words: {mastered_words}")
-            
-            # Calculate success rate
-            success_rate = 0
-            if words_reviewed > 0:
-                success_rate = (correct_count / words_reviewed) * 100
-            print(f"Success rate: {success_rate}%")
-            
-            # Calculate mastery percentage
-            mastery_percentage = 0
-            if total_vocab > 0:
-                mastery_percentage = (mastered_words / total_vocab) * 100
-            print(f"Mastery percentage: {mastery_percentage}%")
-            
-            # Get learning history
-            today = datetime.utcnow().date()
-            history = LearningHistory.query.filter_by(user_id=user_id).order_by(LearningHistory.date.desc()).limit(7).all()
-            history.reverse()  # Put in chronological order
-            print(f"Found {len(history)} days of learning history")
-            
-            # Prepare chart data
-            chart_data = {
-                'labels': [h.date.strftime('%Y-%m-%d') for h in history],
-                'words_reviewed': [h.words_reviewed for h in history],
-                'success_rates': [h.success_rate for h in history]
-            }
-            print(f"Chart data prepared: {chart_data}")
-            
-            # Get difficult words
-            difficult_words = []
-            for dw in DifficultWord.query.filter_by(user_id=user_id).order_by(DifficultWord.error_rate.desc()).limit(10):
-                vocab = Vocabulary.query.get(dw.vocabulary_id)
-                if vocab:
-                    difficult_words.append({
-                        'french_word': vocab.french_word,
-                        'german_word': vocab.german_word,
-                        'error_rate': dw.error_rate
-                    })
-            print(f"Found {len(difficult_words)} difficult words")
-            
-            stats = {
-                'words_reviewed': words_reviewed,
-                'success_rate': success_rate,
-                'words_mastered': mastered_words,
-                'total_words': total_vocab,
-                'mastery_percentage': mastery_percentage,
-                'streak_days': get_streak_days(user_id),
-                'chart_data': chart_data,
-                'difficult_words': difficult_words
-            }
-            print(f"Final stats object: {stats}")
-            return stats
-            
-        except Exception as e:
-            print(f"Error getting user stats: {str(e)}")
-            return None
-
+    
     @app.route('/api/user-stats')
-    def api_user_stats():
+    def get_user_stats():
         if 'user_id' not in session:
             return jsonify({'error': 'Not logged in'}), 401
         
         user_id = session['user_id']
-        stats = get_user_stats(user_id)
         
-        if stats is None:
-            return jsonify({'error': 'Failed to get user stats'}), 500
-            
-        return jsonify(stats)
+        # Get user statistics
+        total_vocab = Vocabulary.query.count()
+        user_progress = UserProgress.query.filter_by(user_id=user_id).all()
+        words_reviewed = sum(p.correct_count + p.incorrect_count for p in user_progress)
+        correct_count = sum(p.correct_count for p in user_progress)
+        mastered_words = UserProgress.query.filter_by(user_id=user_id, mastered=True).count()
+        
+        # Calculate success rate
+        success_rate = 0
+        if words_reviewed > 0:
+            success_rate = (correct_count / words_reviewed) * 100
+        
+        # Calculate mastery percentage
+        mastery_percentage = 0
+        if total_vocab > 0:
+            mastery_percentage = (mastered_words / total_vocab) * 100
+        
+        # Get learning history
+        history = LearningHistory.query.filter_by(user_id=user_id).order_by(LearningHistory.date.desc()).limit(7).all()
+        history.reverse()  # Put in chronological order
+        
+        # Prepare chart data
+        chart_data = {
+            'labels': [h.date.strftime('%Y-%m-%d') for h in history],
+            'words_reviewed': [h.words_reviewed for h in history],
+            'success_rates': [h.success_rate for h in history]
+        }
+        
+        # Get difficult words
+        difficult_words = []
+        for dw in DifficultWord.query.filter_by(user_id=user_id).order_by(DifficultWord.error_rate.desc()).limit(10):
+            vocab = Vocabulary.query.get(dw.vocabulary_id)
+            difficult_words.append({
+                'french_word': vocab.french_word,
+                'german_word': vocab.german_word,
+                'error_rate': dw.error_rate
+            })
+        
+        return jsonify({
+            'words_reviewed': words_reviewed,
+            'success_rate': success_rate,
+            'words_mastered': mastered_words,
+            'total_words': total_vocab,
+            'mastery_percentage': mastery_percentage,
+            'streak_days': get_streak_days(user_id),
+            'chart_data': chart_data,
+            'difficult_words': difficult_words
+        })
     
     @app.route('/api/vocab/<chapter>')
     def api_vocab(chapter):

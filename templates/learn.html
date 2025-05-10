@@ -109,12 +109,6 @@
             const frenchWord = card[0];
             const germanWord = card[1];
             
-            console.log('Sending progress update:', {
-                correct: wasCorrect,
-                french: frenchWord,
-                german: germanWord
-            });
-            
             // Send progress update to server
             fetch('/update-progress', {
                 method: 'POST',
@@ -123,22 +117,14 @@
                 },
                 body: JSON.stringify({
                     correct: wasCorrect,
+                    card_index: currentIndex,
                     french: frenchWord,
                     german: germanWord
                 })
             })
-            .then(response => {
-                console.log('Server response status:', response.status);
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
-                console.log('Progress update response:', data);
-                if (data.success && data.stats) {
-                    // Update dashboard stats
-                    updateDashboardStats(data.stats);
-                } else {
-                    console.error('Error in progress update:', data.error);
-                }
+                console.log('Progress updated:', data);
             })
             .catch(error => {
                 console.error('Error updating progress:', error);
@@ -146,34 +132,6 @@
             
             currentIndex++;
             showNextCard();
-        }
-
-        // Function to update dashboard statistics
-        function updateDashboardStats(stats) {
-            console.log('Updating dashboard stats:', stats);
-            
-            // Update stats in the dashboard if it's open in another tab
-            if (window.opener && !window.opener.closed) {
-                try {
-                    console.log('Sending message to parent window');
-                    window.opener.postMessage({
-                        type: 'updateStats',
-                        stats: stats
-                    }, window.location.origin);
-                } catch (e) {
-                    console.error('Error updating parent window:', e);
-                }
-            } else {
-                console.log('No parent window found');
-            }
-            
-            // Also update local storage for when user returns to dashboard
-            try {
-                localStorage.setItem('lastStats', JSON.stringify(stats));
-                console.log('Updated local storage with new stats');
-            } catch (e) {
-                console.error('Error updating local storage:', e);
-            }
         }
 
         // Function to check if there's a specific word to practice
