@@ -175,8 +175,7 @@ def create_app(config_class=Config):
             'success_rate': 48,
             'total_words': 496,
             'words_mastered': 0,
-            'mastery_percentage': 0,
-            username': 'test', 'words_reviewed': 21, 'success_rate': 48.0, 'streak_days': 1}
+            'mastery_percentage': 0
         }
         difficult_words = [
             {'french_word': 'sortir', 'german_word': 'verlassen, rausgehen', 'error_rate': 100.0},
