@@ -170,17 +170,18 @@ def create_app(config_class=Config):
     def dashboard():
         # Use fixed, hardcoded stats
         stats_data = {
-            'streak_days': 5,
-            'words_reviewed': 120,
-            'success_rate': 87.5,
+            'streak_days': 1,
+            'words_reviewed': 21,
+            'success_rate': 48,
             'total_words': 496,
-            'words_mastered': 320,
-            'mastery_percentage': 64.5
+            'words_mastered': 0,
+            'mastery_percentage': 0,
+            username': 'test', 'words_reviewed': 21, 'success_rate': 48.0, 'streak_days': 1}
         }
         difficult_words = [
-            {'french_word': 'chien', 'german_word': 'Hund', 'error_rate': 50.0},
-            {'french_word': 'chat', 'german_word': 'Katze', 'error_rate': 40.0},
-            {'french_word': 'maison', 'german_word': 'Haus', 'error_rate': 35.0}
+            {'french_word': 'sortir', 'german_word': 'verlassen, rausgehen', 'error_rate': 100.0},
+            {'french_word': 'aider qn', 'german_word': 'jmd. helfen', 'error_rate': 100.0},
+            {'french_word': 'un(e) correspondant(e)', 'german_word': 'ein(e) Brieffreund(in)', 'error_rate': 100.0}
         ]
         chart_data = {
             'labels': ['2024-05-01', '2024-05-02', '2024-05-03', '2024-05-04', '2024-05-05', '2024-05-06', '2024-05-07'],
@@ -451,11 +452,11 @@ def create_app(config_class=Config):
     def leaderboard():
         # Use fixed, hardcoded leaderboard data
         top_users = [
-            {'username': 'Anna', 'words_reviewed': 120, 'success_rate': 87.5, 'streak_days': 5},
-            {'username': 'Ben', 'words_reviewed': 110, 'success_rate': 85.0, 'streak_days': 4},
-            {'username': 'Clara', 'words_reviewed': 105, 'success_rate': 82.0, 'streak_days': 3},
-            {'username': 'David', 'words_reviewed': 100, 'success_rate': 80.0, 'streak_days': 2},
-            {'username': 'Eva', 'words_reviewed': 95, 'success_rate': 78.0, 'streak_days': 1}
+            {'username': 'kerem', 'words_reviewed': 124, 'success_rate': 47.5, 'streak_days': 1},
+            {'username': 'muratovic', 'words_reviewed': 110, 'success_rate': 82.0, 'streak_days': 1},
+            {'username': 'sebast23', 'words_reviewed': 93, 'success_rate': 34.0, 'streak_days': 1},
+            {'username': 'test2', 'words_reviewed': 43, 'success_rate': 40.0, 'streak_days': 1},
+            {'username': 'test', 'words_reviewed': 21, 'success_rate': 48.0, 'streak_days': 1}
         ]
         return render_template('leaderboard.html', top_users=top_users)
     
