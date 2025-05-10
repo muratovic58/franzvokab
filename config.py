@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 import warnings
 from urllib.parse import quote_plus
+from sqlalchemy.engine.url import make_url
 
 # Suppress warnings about deprecated classifiers
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -20,32 +21,19 @@ except Exception as e:
 class Config:
     SECRET_KEY = os.environ.get('FLASK_SECRET_KEY', 'dev-key-for-development-only')
     
-    # Get the database URL from environment
-    raw_db_url = os.environ.get('DATABASE_URL', 'sqlite:///franzvokab.db')
-    
-    # Handle special characters in the password
-    if '@' in raw_db_url:
-        parts = raw_db_url.split('@')
-        auth = parts[0]
-        host = parts[1]
-        
-        # Split username:password
-        if ':' in auth:
-            user_pass = auth.split(':')[1]
-            username = user_pass.split(':')[0]
-            password = user_pass.split(':')[1]
-            
-            # URL encode the password
-            encoded_password = quote_plus(password)
-            
-            # Reconstruct the URL with encoded password
-            raw_db_url = f"postgresql://{username}:{encoded_password}@{host}"
-    
-    # If using Postgres on Railway, make sure to replace 'postgres://' with 'postgresql://'
-    if raw_db_url and raw_db_url.startswith('postgres://'):
-        raw_db_url = raw_db_url.replace('postgres://', 'postgresql://', 1)
-    
-    SQLALCHEMY_DATABASE_URI = raw_db_url
+    db_url = os.environ.get('DATABASE_URL')
+    if not db_url:
+        raise ValueError('DATABASE_URL environment variable is not set!')
+    try:
+        url = make_url(db_url)
+        SQLALCHEMY_DATABASE_URI = db_url
+        DB_USERNAME = url.username
+        DB_PASSWORD = url.password
+        DB_HOST = url.host
+        DB_PORT = url.port
+        DB_NAME = url.database
+    except Exception as e:
+        raise ValueError(f'Error parsing DATABASE_URL: {e}')
     
     # Debug output
     print(f"SQLALCHEMY_DATABASE_URI: {SQLALCHEMY_DATABASE_URI}")
